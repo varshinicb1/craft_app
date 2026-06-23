@@ -1,0 +1,58 @@
+# Flutter
+.dart_tool/
+.packages
+.pub/
+build/
+*.iml
+.idea/
+.metadata
+*.lock
+*.log
+
+# Android
+android/.gradle/
+android/app/build/
+android/local.properties
+*.apk
+*.aab
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+*.xcworkspace
+xcuserdata/
+
+# macOS
+macos/Pods/
+macos/.symlinks/
+
+# Windows
+windows/runner/Debug/
+windows/runner/Release/
+windows/flutter/ephemeral/
+*.user
+*.suo
+
+# Web
+build/web/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+*.key
+*.jks
+*.p12
+
+# Temp
+test/temp/

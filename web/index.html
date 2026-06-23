@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+  <title>CRAFT</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body { margin: 0; padding: 0; background: #0F0F23; }
+    #loading {
+      display: flex; align-items: center; justify-content: center;
+      height: 100vh; flex-direction: column;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .loader { width: 48px; height: 48px; border: 4px solid rgba(108,99,255,0.2);
+      border-top-color: #6C63FF; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    p { color: #6C63FF; margin-top: 16px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div id="loading">
+    <div class="loader"></div>
+    <p>CRAFT · Loading...</p>
+  </div>
+  <script src="flutter.js" defer></script>
+  <script>
+    window.addEventListener('load', function() {
+      _flutter.loader.load({
+        serviceWorkerSettings: { serviceWorkerVersion: '1.0.0' },
+        onEntrypointLoaded: function(engineInitializer) {
+          document.getElementById('loading').style.display = 'none';
+          engineInitializer.initializeEngine().then(function(appRunner) {
+            appRunner.runApp();
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
