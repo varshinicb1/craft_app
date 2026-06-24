@@ -29,8 +29,11 @@
 | 📄 **PDF Editor** | Redact PII (emails, phones, SSN, cards, API keys), batch auto-form fill, side-by-side diff |
 | 🔄 **Converter** | Text ⇄ HTML, image format conversion (heic → jpg/png, etc.) |
 | ✍️ **Document Generator** | Resumes, invoices, contracts, PRDs — export as PDF |
-| 📦 **Archive Extractor** | Extract ZIP, TAR, GZip with password support |
+| 📦 **Archive Extractor** | Extract ZIP archives with file listing |
+| 📦 **Archive Creator** | Create ZIP archives from selected files |
+| 🖼️ **Image Compressor** | Reduce image file size with quality slider & resize controls |
 | 📱 **QR Sharing** | Generate QR codes from files, share via any app |
+| ✍️ **Markdown Viewer** | Render `.md` files with formatted markdown (source/rendered toggle) |
 | 🎨 **Theme Support** | Light, dark, and system-follow themes |
 | 📊 **Dashboard** | Quick stats, recent files, category counts at a glance |
 | 🏞️ **Media Playback** | Video player, audio player with playback controls |
@@ -100,9 +103,11 @@ flutter build web --release
 | Local Storage | SharedPreferences |
 | File Handling | file_picker, path_provider |
 | PDF | dart_pdf |
+| Markdown | flutter_markdown |
 | 3D Rendering | Custom OBJ/STL parser + vector_math |
 | Media | video_player, just_audio |
 | Archiving | archive (Dart) |
+| Image Processing | image (Dart) — encode, decode, resize, compress |
 | Sharing | share_plus, qr_flutter |
 
 ## Project Structure
@@ -131,7 +136,9 @@ lib/
 │   └── app_theme.dart
 ├── tools/                    # Standalone tools
 │   ├── archive_extractor.dart
+│   ├── archive_creator.dart
 │   ├── contract_generator.dart
+│   ├── image_compressor.dart
 │   ├── invoice_generator.dart
 │   ├── prd_generator.dart
 │   └── resume_generator.dart

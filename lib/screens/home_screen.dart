@@ -14,6 +14,8 @@ import '../tools/invoice_generator.dart';
 import '../tools/prd_generator.dart';
 import '../tools/contract_generator.dart';
 import '../tools/archive_extractor.dart';
+import '../tools/archive_creator.dart';
+import '../tools/image_compressor.dart';
 import '../screens/settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -525,6 +527,8 @@ class _ToolPickerSheet extends StatelessWidget {
       _ToolData('PRD Writer', Icons.assignment_rounded, AppTheme.getFileColor('doc'), const PrdGenerator(), 'Product requirement docs'),
       _ToolData('Contract Builder', Icons.gavel_rounded, AppTheme.getFileColor('docx'), const ContractGenerator(), 'Legal contract templates'),
       _ToolData('Archive Extractor', Icons.folder_zip_rounded, AppTheme.getFileColor('zip'), const ArchiveExtractor(), 'Extract ZIP archives'),
+      _ToolData('Archive Creator', Icons.archive_rounded, AppTheme.getFileColor('zip'), const ArchiveCreator(), 'Create ZIP archives'),
+      _ToolData('Image Compressor', Icons.compress_rounded, AppTheme.getFileColor('jpg'), const ImageCompressor(), 'Compress & resize images'),
     ];
 
     return DraggableScrollableSheet(
