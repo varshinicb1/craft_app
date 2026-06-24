@@ -327,7 +327,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _exportDatabase() async {
-    final dir = await FilePicker.platform.getDirectoryPath(
+    final dir = await FilePicker.getDirectoryPath(
       dialogTitle: 'Select export destination',
     );
     if (dir == null) return;
@@ -389,7 +389,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (confirm != true) return;
 
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.any,
       allowMultiple: false,
     );

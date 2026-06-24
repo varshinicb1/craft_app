@@ -234,7 +234,7 @@ class _ConverterScreenState extends State<ConverterScreen> {
   }
 
   Future<void> _pickSourceFile() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.any);
+    final result = await FilePicker.pickFiles(type: FileType.any);
     if (result != null && result.files.isNotEmpty && result.files.first.path != null) {
       setState(() {
         _sourceFile = FileItem.fromFile(File(result.files.first.path!));

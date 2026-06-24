@@ -32,7 +32,7 @@ class _ViewerScreenState extends State<ViewerScreen> {
   }
 
   Future<void> _pickAndView() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.any);
+    final result = await FilePicker.pickFiles(type: FileType.any);
     if (result != null && result.files.isNotEmpty && result.files.first.path != null) {
       final file = FileItem.fromFile(File(result.files.first.path!));
       setState(() => _viewingFile = file);

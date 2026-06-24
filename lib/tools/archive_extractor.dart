@@ -26,7 +26,7 @@ class _ArchiveExtractorState extends State<ArchiveExtractor> {
   }
 
   Future<void> _pickArchive() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['zip', 'rar', '7z'],
       withReadStream: false,
@@ -44,7 +44,7 @@ class _ArchiveExtractorState extends State<ArchiveExtractor> {
   }
 
   Future<void> _pickOutputDir() async {
-    final result = await FilePicker.platform.getDirectoryPath();
+    final result = await FilePicker.getDirectoryPath();
     if (result == null) return;
     setState(() => _outputDir = Directory(result));
   }
