@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:video_player/video_player.dart';
 import '../providers/app_provider.dart';
 import '../theme/app_theme.dart';
@@ -24,6 +25,7 @@ class _ViewerScreenState extends State<ViewerScreen> {
   String _textContent = '';
   String _pdfContent = '';
   bool _isLoadingContent = false;
+  bool _showMarkdownRendered = true;
 
   @override
   void dispose() {
@@ -96,6 +98,12 @@ class _ViewerScreenState extends State<ViewerScreen> {
               ],
             ),
             actions: [
+              if (file != null && file.extension == 'md')
+                IconButton(
+                  icon: Icon(_showMarkdownRendered ? Icons.code_rounded : Icons.visibility_rounded),
+                  onPressed: () => setState(() => _showMarkdownRendered = !_showMarkdownRendered),
+                  tooltip: _showMarkdownRendered ? 'Show source' : 'Show rendered',
+                ),
               IconButton(
                 icon: const Icon(Icons.folder_open_rounded),
                 onPressed: _pickAndView,
@@ -201,6 +209,9 @@ class _ViewerScreenState extends State<ViewerScreen> {
     } else if (file.isAudio) {
       return AudioPlayerWidget(filePath: file.path);
     } else if (file.isText && _textContent.isNotEmpty) {
+      if (file.extension == 'md' && _showMarkdownRendered) {
+        return _buildMarkdownView(theme);
+      }
       return _buildTextView(theme);
     } else if (file.isModel) {
       return ModelViewer3D(filePath: file.path);
@@ -296,6 +307,44 @@ class _ViewerScreenState extends State<ViewerScreen> {
           child: SelectableText(
             text,
             style: const TextStyle(fontFamily: 'monospace', fontSize: 13, height: 1.5),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMarkdownView(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: theme.dividerColor),
+        ),
+        child: Markdown(
+          data: _textContent,
+          selectable: true,
+          styleSheet: MarkdownStyleSheet(
+            h1: theme.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.w700),
+            h2: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w600),
+            h3: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+            p: theme.textTheme.bodyMedium,
+            code: TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 13,
+              color: theme.colorScheme.primary,
+              backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+            ),
+            codeblockDecoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            blockquoteDecoration: BoxDecoration(
+              border: Border(left: BorderSide(color: theme.colorScheme.primary, width: 4)),
+              color: theme.colorScheme.primary.withValues(alpha: 0.05),
+            ),
           ),
         ),
       ),
