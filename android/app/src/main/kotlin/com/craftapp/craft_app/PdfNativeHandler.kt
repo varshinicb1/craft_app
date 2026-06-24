@@ -11,16 +11,16 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.*
-import org.apache.pdfbox.android.PDFBoxResourceLoader
-import org.apache.pdfbox.pdmodel.*
-import org.apache.pdfbox.pdmodel.common.PDRectangle
-import org.apache.pdfbox.pdmodel.encryption.AccessPermission
-import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy
-import org.apache.pdfbox.pdmodel.font.PDType0Font
-import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
-import org.apache.pdfbox.rendering.ImageType
-import org.apache.pdfbox.rendering.PDFRenderer
-import org.apache.pdfbox.text.PDFTextStripper
+import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
+import com.tom_roush.pdfbox.pdmodel.*
+import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
+import com.tom_roush.pdfbox.pdmodel.encryption.AccessPermission
+import com.tom_roush.pdfbox.pdmodel.encryption.StandardProtectionPolicy
+import com.tom_roush.pdfbox.pdmodel.font.PDType0Font
+import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject
+import com.tom_roush.pdfbox.rendering.ImageType
+import com.tom_roush.pdfbox.rendering.PDFRenderer
+import com.tom_roush.pdfbox.text.PDFTextStripper
 import java.io.*
 import java.security.SecureRandom
 import kotlin.math.max
@@ -173,8 +173,8 @@ class PdfNativeHandler(private val context: Context) {
 
         val doc = PDDocument.load(File(path))
         val permission = AccessPermission()
-        permission.canModify = false
-        permission.canExtractContent = false
+        permission.setCanModify(false)
+        permission.setCanExtractContent(false)
 
         val policy = StandardProtectionPolicy(password, password, permission)
         policy.encryptionKeyLength = 256
@@ -191,7 +191,7 @@ class PdfNativeHandler(private val context: Context) {
         val password = call.argument<String>("password") ?: throw IllegalArgumentException("password required")
 
         val doc = PDDocument.load(File(path), password)
-        doc.openProtection(password)
+        // password already provided to load()
         doc.save(path.replace(".pdf", "_decrypted.pdf"))
         doc.close()
         result.success("PDF decrypted successfully")
@@ -344,7 +344,7 @@ class PdfNativeHandler(private val context: Context) {
         for (i in 0 until doc.numberOfPages) {
             val page = doc.getPage(i)
             val cs = PDPageContentStream(doc, page, PDPageContentStream.AppendMode.APPEND, true, true)
-            cs.setNonStrokingColor(org.apache.pdfbox.pdmodel.graphics.color.PDDeviceGray())
+            cs.setNonStrokingColor(com.tom_roush.pdfbox.pdmodel.graphics.color.PDDeviceGray.INSTANCE.initialColor)
             cs.beginText()
             cs.newLineAtOffset(page.mediaBox.width / 4, page.mediaBox.height / 2)
             cs.setFont(PDType0Font.load(doc, javaClass.getResourceAsStream("/fonts/Helvetica.ttf")), 48f)
@@ -420,7 +420,7 @@ class PdfNativeHandler(private val context: Context) {
         ).build()
 
         val input = File(path).readBytes()
-        encryptedFile.openFileOutputStream().use { it.write(input) }
+        encryptedFile.openFileOutput().use { it.write(input) }
         File(path).delete()
         result.success("$path.enc")
     }
@@ -439,7 +439,7 @@ class PdfNativeHandler(private val context: Context) {
             EncryptedFile.FileEncryptionScheme.AES256_GCM_HKDF_4KB
         ).build()
 
-        val decrypted = encryptedFile.openFileInputStream().use { it.readBytes() }
+        val decrypted = encryptedFile.openFileInput().use { it.readBytes() }
         val outPath = path.removeSuffix(".enc")
         File(outPath).writeBytes(decrypted)
         result.success(outPath)

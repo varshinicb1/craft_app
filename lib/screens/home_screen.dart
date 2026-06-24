@@ -51,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _pickFiles() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       allowMultiple: true,
       type: FileType.any,
     );
@@ -90,7 +90,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final size = MediaQuery.of(context).size; // ignore: unused_local_variable
 
     return Scaffold(
       body: Consumer<AppProvider>(
@@ -373,11 +372,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         Icon(icon, size: 20, color: theme.colorScheme.primary),
         const SizedBox(width: 8),
         Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-        const Spacer(),
-        TextButton(
-          onPressed: () {},
-          child: const Text('See All'),
-        ),
       ],
     );
   }

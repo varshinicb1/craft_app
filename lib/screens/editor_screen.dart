@@ -34,7 +34,7 @@ class _EditorScreenState extends State<EditorScreen> {
   }
 
   Future<void> _pickFile() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.any);
+    final result = await FilePicker.pickFiles(type: FileType.any);
     if (result != null && result.files.isNotEmpty && result.files.first.path != null) {
       final file = FileItem.fromFile(File(result.files.first.path!));
       setState(() {
