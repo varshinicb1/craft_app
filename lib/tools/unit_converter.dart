@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 class UnitConverter extends StatefulWidget {
   const UnitConverter({super.key});
@@ -105,110 +106,161 @@ class _UnitConverterState extends State<UnitConverter> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const color = Colors.teal;
+    final ac = theme.extension<AppColors>()!;
     final units = _units[_category]!;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Unit Converter')),
       body: ListView(padding: const EdgeInsets.all(20), children: [
-        _buildHeader(theme, color), const SizedBox(height: 24),
-        _buildCategorySelector(theme, color),
+        _buildHeader(theme, ac), const SizedBox(height: 24),
+        _buildCategorySelector(theme, ac),
         const SizedBox(height: 20),
-        _buildUnitPicker(theme, color, units),
+        _buildUnitPicker(theme, ac, units),
         const SizedBox(height: 20),
-        _buildInputField(theme, color),
+        _buildInputField(theme, ac),
         const SizedBox(height: 16),
-        _buildConvertButton(theme, color),
-        if (_result.isNotEmpty) ...[const SizedBox(height: 20), _buildResult(theme, color)],
+        _buildConvertButton(theme, ac),
+        if (_result.isNotEmpty) ...[const SizedBox(height: 20), _buildResult(theme, ac)],
         const SizedBox(height: 32),
       ]),
     );
   }
 
-  Widget _buildHeader(ThemeData theme, Color color) {
+  Widget _buildHeader(ThemeData theme, AppColors ac) {
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(gradient: LinearGradient(colors: [color, color.withValues(alpha: 0.7)]), borderRadius: BorderRadius.circular(20)),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [ac.primary, ac.gold], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.circular(24),
+      ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Icon(Icons.swap_horiz_rounded, color: Colors.white, size: 36),
-        const SizedBox(height: 12),
-        Text('Unit Converter', style: theme.textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: Colors.white.withAlpha(30), borderRadius: BorderRadius.circular(14)),
+          child: const Icon(Icons.swap_horiz_rounded, color: Color(0xFF1A0A00), size: 28),
+        ),
+        const SizedBox(height: 16),
+        Text('Unit Converter', style: theme.textTheme.headlineSmall?.copyWith(color: const Color(0xFF1A0A00), fontWeight: FontWeight.w700)),
         const SizedBox(height: 4),
-        Text('Length, Weight, Temperature, Data, Speed & more', style: TextStyle(color: Colors.white.withValues(alpha: 0.8))),
+        Text('Length, Weight, Temperature, Data, Speed & more', style: TextStyle(color: const Color(0xFF1A0A00).withAlpha(200))),
       ]),
     );
   }
 
-  Widget _buildCategorySelector(ThemeData theme, Color color) {
-    return Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('Category', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-      const SizedBox(height: 12),
-      Wrap(spacing: 8, runSpacing: 8, children: _categories.map((cat) {
-        final isSelected = _category == cat;
-        return ChoiceChip(
-          label: Text(cat),
-          selected: isSelected,
-          onSelected: (_) => setState(() { _category = cat; _fromIndex = 0; _toIndex = 1; _result = ''; }),
-          selectedColor: color.withValues(alpha: 0.15),
-        );
-      }).toList()),
-    ])));
-  }
-
-  Widget _buildUnitPicker(ThemeData theme, Color color, List<String> units) {
-    return Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [
-      Row(children: [
-        Expanded(child: _buildDropdown(theme, 'From', units, _fromIndex, (v) => setState(() { _fromIndex = v!; _result = ''; }), color)),
-        const Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Icon(Icons.arrow_forward_rounded)),
-        Expanded(child: _buildDropdown(theme, 'To', units, _toIndex, (v) => setState(() { _toIndex = v!; _result = ''; }), color)),
+  Widget _buildCategorySelector(ThemeData theme, AppColors ac) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: ac.card, borderRadius: BorderRadius.circular(18), border: Border.all(color: ac.outline.withAlpha(60))),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('Category', style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 12),
+        Wrap(spacing: 8, runSpacing: 8, children: _categories.map((cat) {
+          final isSelected = _category == cat;
+          return ChoiceChip(
+            label: Text(cat),
+            selected: isSelected,
+            onSelected: (_) => setState(() { _category = cat; _fromIndex = 0; _toIndex = 1; _result = ''; }),
+            selectedColor: ac.primaryContainer,
+            backgroundColor: ac.surfaceVariant,
+            side: BorderSide(color: isSelected ? ac.primary.withAlpha(80) : ac.outline.withAlpha(60)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            labelStyle: TextStyle(color: isSelected ? ac.primary : ac.onSurfaceDim, fontSize: 13),
+          );
+        }).toList()),
       ]),
-    ])));
+    );
   }
 
-  Widget _buildDropdown(ThemeData theme, String label, List<String> items, int value, ValueChanged<int?> onChanged, Color color) {
+  Widget _buildUnitPicker(ThemeData theme, AppColors ac, List<String> units) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: ac.card, borderRadius: BorderRadius.circular(18), border: Border.all(color: ac.outline.withAlpha(60))),
+      child: Column(children: [
+        Row(children: [
+          Expanded(child: _buildDropdown(theme, ac, 'From', units, _fromIndex, (v) => setState(() { _fromIndex = v!; _result = ''; }))),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: ac.primaryContainer, borderRadius: BorderRadius.circular(10)),
+              child: Icon(Icons.arrow_forward_rounded, color: ac.primary, size: 18),
+            ),
+          ),
+          Expanded(child: _buildDropdown(theme, ac, 'To', units, _toIndex, (v) => setState(() { _toIndex = v!; _result = ''; }))),
+        ]),
+      ]),
+    );
+  }
+
+  Widget _buildDropdown(ThemeData theme, AppColors ac, String label, List<String> items, int value, ValueChanged<int?> onChanged) {
     return DropdownButtonFormField<int>(
       initialValue: value,
-      decoration: InputDecoration(labelText: label, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
-      items: List.generate(items.length, (i) => DropdownMenuItem(value: i, child: Text(items[i], style: const TextStyle(fontSize: 13)))),
+      dropdownColor: ac.cardElevated,
+      style: TextStyle(color: ac.cream),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: ac.onSurfaceDim),
+      ),
+      items: List.generate(items.length, (i) => DropdownMenuItem(
+        value: i,
+        child: Text(items[i], style: const TextStyle(fontSize: 13)),
+      )),
       onChanged: onChanged,
     );
   }
 
-  Widget _buildInputField(ThemeData theme, Color color) {
-    return Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('Value', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-      const SizedBox(height: 12),
-      TextField(
-        controller: _inputCtrl,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        decoration: InputDecoration(
-          hintText: 'Enter value',
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          suffixIcon: IconButton(icon: const Icon(Icons.refresh_rounded), onPressed: () { _inputCtrl.text = '1'; _convert(); }),
+  Widget _buildInputField(ThemeData theme, AppColors ac) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: ac.card, borderRadius: BorderRadius.circular(18), border: Border.all(color: ac.outline.withAlpha(60))),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('Value', style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _inputCtrl,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600),
+          decoration: InputDecoration(
+            hintText: 'Enter value',
+            suffixIcon: IconButton(
+              icon: Icon(Icons.refresh_rounded, color: ac.onSurfaceDim),
+              onPressed: () { _inputCtrl.text = '1'; _convert(); },
+            ),
+          ),
         ),
-        style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
-      ),
-    ])));
-  }
-
-  Widget _buildConvertButton(ThemeData theme, Color color) {
-    return FilledButton.icon(
-      onPressed: _convert,
-      icon: const Icon(Icons.calculate_rounded),
-      label: const Text('Convert'),
-      style: FilledButton.styleFrom(minimumSize: const Size(double.infinity, 52), backgroundColor: color),
+      ]),
     );
   }
 
-  Widget _buildResult(ThemeData theme, Color color) {
-    return Card(
-      color: color.withValues(alpha: 0.1),
-      child: Padding(padding: const EdgeInsets.all(24), child: Center(child: Column(children: [
-        Text('${_inputCtrl.text} ${_units[_category]![_fromIndex]} =', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
+  Widget _buildConvertButton(ThemeData theme, AppColors ac) {
+    return Container(
+      width: double.infinity,
+      height: 54,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [BoxShadow(color: ac.primary.withAlpha(50), blurRadius: 16, offset: const Offset(0, 6))],
+      ),
+      child: FilledButton.icon(
+        onPressed: _convert,
+        icon: const Icon(Icons.calculate_rounded),
+        label: const Text('Convert'),
+      ),
+    );
+  }
+
+  Widget _buildResult(ThemeData theme, AppColors ac) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: ac.primaryContainer.withAlpha(100),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: ac.primary.withAlpha(60)),
+      ),
+      child: Center(child: Column(children: [
+        Text('${_inputCtrl.text} ${_units[_category]![_fromIndex]} =', style: TextStyle(color: ac.onSurfaceDim)),
         const SizedBox(height: 8),
-        Text(_result, style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700, color: color)),
-      ]))),
+        Text(_result, style: theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w700, color: ac.primary)),
+      ])),
     );
   }
 }

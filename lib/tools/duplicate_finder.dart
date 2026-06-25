@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as p;
 import '../services/isolate_service.dart';
+import '../theme/app_theme.dart';
 
 class DuplicateFinder extends StatefulWidget {
   const DuplicateFinder({super.key});
@@ -108,107 +109,133 @@ class _DuplicateFinderState extends State<DuplicateFinder> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const color = Colors.orange;
+    final ac = theme.extension<AppColors>()!;
+    const color = Color(0xFFFFB74D);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Duplicate Finder'),
-        actions: [if (_scanning || _deleting) const Padding(padding: EdgeInsets.all(16), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)))],
-      ),
+      appBar: AppBar(title: const Text('Duplicate Finder'),
+        actions: [if (_scanning || _deleting) const Padding(padding: EdgeInsets.all(16), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)))]),
       body: ListView(padding: const EdgeInsets.all(20), children: [
-        _buildHeader(theme, color), const SizedBox(height: 24),
-        _buildDirSelector(theme, color), const SizedBox(height: 16),
-        _buildScanButton(theme, color),
-        if (_scanning) ...[const SizedBox(height: 16), const LinearProgressIndicator(), const SizedBox(height: 8), Center(child: Text('Scanned $_filesScanned files...', style: theme.textTheme.bodySmall))],
-        if (_statusMessage != null) ...[const SizedBox(height: 16), _buildStatusBanner(theme, color)],
-        if (_groups.isNotEmpty) ...[const SizedBox(height: 24), _buildResults(theme)],
+        _buildHeader(theme, ac, color), const SizedBox(height: 24),
+        _buildDirSelector(theme, ac, color), const SizedBox(height: 16),
+        _buildScanButton(theme, ac, color),
+        if (_scanning) ...[
+          const SizedBox(height: 16),
+          LinearProgressIndicator(color: ac.primary),
+          const SizedBox(height: 8),
+          Center(child: Text('Scanned $_filesScanned files...', style: TextStyle(color: ac.onSurfaceDim))),
+        ],
+        if (_statusMessage != null) ...[const SizedBox(height: 16), _buildStatusBanner(theme, ac)],
+        if (_groups.isNotEmpty) ...[const SizedBox(height: 24), _buildResults(theme, ac)],
         const SizedBox(height: 32),
       ]),
     );
   }
 
-  Widget _buildHeader(ThemeData theme, Color color) {
+  Widget _buildHeader(ThemeData theme, AppColors ac, Color color) {
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(gradient: LinearGradient(colors: [color, color.withValues(alpha: 0.7)]), borderRadius: BorderRadius.circular(20)),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [color, color.withAlpha(100)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.circular(24),
+      ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Icon(Icons.copy_all_rounded, color: Colors.white, size: 36),
-        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: Colors.white.withAlpha(30), borderRadius: BorderRadius.circular(14)),
+          child: const Icon(Icons.copy_all_rounded, color: Colors.white, size: 28),
+        ),
+        const SizedBox(height: 16),
         Text('Duplicate Finder', style: theme.textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
         const SizedBox(height: 4),
-        Text('Find and remove duplicate files to free up space', style: TextStyle(color: Colors.white.withValues(alpha: 0.8))),
+        Text('Find and remove duplicate files to free up space', style: TextStyle(color: Colors.white.withAlpha(200))),
       ]),
     );
   }
 
-  Widget _buildDirSelector(ThemeData theme, Color color) {
-    return Card(child: InkWell(
-      borderRadius: BorderRadius.circular(16), onTap: _pickDirectory,
-      child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
-        Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
-          child: const Icon(Icons.folder_rounded, color: Colors.orange, size: 28)),
-        const SizedBox(width: 16),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Scan Directory', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-          Text(_scanDir ?? 'Tap to pick a folder to scan', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.5)), overflow: TextOverflow.ellipsis),
-        ])),
-        const Icon(Icons.chevron_right_rounded, color: Colors.grey),
-      ])),
-    ));
-  }
-
-  Widget _buildScanButton(ThemeData theme, Color color) {
-    return FilledButton.icon(
-      onPressed: (_scanDir == null || _scanning) ? null : _scan,
-      icon: _scanning ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.search_rounded),
-      label: Text(_scanning ? 'Scanning...' : 'Scan for Duplicates'),
-      style: FilledButton.styleFrom(minimumSize: const Size(double.infinity, 52), backgroundColor: color),
+  Widget _buildDirSelector(ThemeData theme, AppColors ac, Color color) {
+    return Container(
+      decoration: BoxDecoration(color: ac.card, borderRadius: BorderRadius.circular(18), border: Border.all(color: ac.outline.withAlpha(60))),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(borderRadius: BorderRadius.circular(18), onTap: _pickDirectory,
+          child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
+            Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: color.withAlpha(25), borderRadius: BorderRadius.circular(14)),
+              child: Icon(Icons.folder_rounded, color: color, size: 26)),
+            const SizedBox(width: 16),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('Scan Directory', style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600)),
+              Text(_scanDir ?? 'Tap to pick a folder to scan', style: TextStyle(color: ac.onSurfaceDim, fontSize: 12), overflow: TextOverflow.ellipsis),
+            ])),
+            Icon(Icons.chevron_right_rounded, color: ac.onSurfaceDim.withAlpha(120)),
+          ])),
+        ),
+      ),
     );
   }
 
-  Widget _buildResults(ThemeData theme) {
+  Widget _buildScanButton(ThemeData theme, AppColors ac, Color color) {
+    return Container(
+      width: double.infinity,
+      height: 54,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [BoxShadow(color: color.withAlpha(60), blurRadius: 16, offset: const Offset(0, 6))],
+      ),
+      child: FilledButton.icon(
+        onPressed: (_scanDir == null || _scanning) ? null : _scan,
+        icon: _scanning ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.search_rounded),
+        label: Text(_scanning ? 'Scanning...' : 'Scan for Duplicates'),
+        style: FilledButton.styleFrom(backgroundColor: color),
+      ),
+    );
+  }
+
+  Widget _buildResults(ThemeData theme, AppColors ac) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('Duplicate Groups (${_groups.length})', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+      Text('Duplicate Groups (${_groups.length})', style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600, fontSize: 16)),
       const SizedBox(height: 12),
-      ..._groups.map((g) => Card(
+      ..._groups.map((g) => Container(
         margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(color: ac.card, borderRadius: BorderRadius.circular(18), border: Border.all(color: ac.outline.withAlpha(60))),
         child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            Icon(Icons.copy_all_rounded, size: 20, color: Colors.orange.shade300),
+            const Icon(Icons.copy_all_rounded, size: 20, color: Color(0xFFFFB74D)),
             const SizedBox(width: 8),
-            Text('${g.files.length} copies · ${_formatSize(g.size)} each', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+            Text('${g.files.length} copies · ${_formatSize(g.size)} each', style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600)),
             const Spacer(),
-            Text('${_formatSize(g.size * (g.files.length - 1))} wasted', style: TextStyle(color: Colors.red.shade400, fontSize: 12, fontWeight: FontWeight.w500)),
+            Text('${_formatSize(g.size * (g.files.length - 1))} wasted', style: const TextStyle(color: Color(0xFFE57373), fontSize: 12, fontWeight: FontWeight.w500)),
           ]),
           const SizedBox(height: 12),
           ...g.files.map((f) => Padding(padding: const EdgeInsets.only(bottom: 4), child: Row(children: [
-            Icon(Icons.insert_drive_file_rounded, size: 16, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+            Icon(Icons.insert_drive_file_rounded, size: 16, color: ac.onSurfaceDim.withAlpha(120)),
             const SizedBox(width: 8),
-            Expanded(child: Text(p.basename(f.path), style: theme.textTheme.bodySmall, overflow: TextOverflow.ellipsis, maxLines: 1)),
+            Expanded(child: Text(p.basename(f.path), style: TextStyle(color: ac.cream), overflow: TextOverflow.ellipsis, maxLines: 1)),
           ]))),
           const SizedBox(height: 8),
           Align(alignment: Alignment.centerRight, child: TextButton.icon(
             onPressed: _deleting ? null : () => _deleteDuplicates(g, g.files.first),
             icon: const Icon(Icons.auto_delete_rounded, size: 16),
             label: const Text('Keep first, delete rest'),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: const Color(0xFFE57373)),
           )),
         ])),
       )),
     ]);
   }
 
-  Widget _buildStatusBanner(ThemeData theme, Color color) {
+  Widget _buildStatusBanner(ThemeData theme, AppColors ac) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _statusIsError ? theme.colorScheme.error.withValues(alpha: 0.1) : Colors.green.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _statusIsError ? theme.colorScheme.error.withValues(alpha: 0.3) : Colors.green.withValues(alpha: 0.3)),
+        color: (_statusIsError ? const Color(0xFFCF6679) : const Color(0xFF81C784)).withAlpha(25),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: (_statusIsError ? const Color(0xFFCF6679) : const Color(0xFF81C784)).withAlpha(80)),
       ),
       child: Row(children: [
-        Icon(_statusIsError ? Icons.error_outline_rounded : Icons.check_circle_outline_rounded, color: _statusIsError ? theme.colorScheme.error : Colors.green, size: 20),
+        Icon(_statusIsError ? Icons.error_outline_rounded : Icons.check_circle_outline_rounded,
+             color: _statusIsError ? const Color(0xFFCF6679) : const Color(0xFF81C784), size: 20),
         const SizedBox(width: 10),
-        Expanded(child: Text(_statusMessage!, style: theme.textTheme.bodySmall)),
+        Expanded(child: Text(_statusMessage!, style: TextStyle(color: ac.cream))),
       ]),
     );
   }

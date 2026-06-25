@@ -146,64 +146,80 @@ class _EditorScreenState extends State<EditorScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final ac = theme.extension<AppColors>()!;
 
     return Scaffold(
+      backgroundColor: ac.bg,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             expandedHeight: 60,
             pinned: true,
+            backgroundColor: ac.bg,
+            surfaceTintColor: Colors.transparent,
             leading: const SizedBox(),
             title: Row(
               children: [
-                Icon(Icons.edit_note_rounded, color: theme.colorScheme.primary),
-                const SizedBox(width: 8),
-                Text('Editor', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: ac.primaryContainer,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.edit_note_rounded, color: ac.primary, size: 18),
+                ),
+                const SizedBox(width: 10),
+                Text('Editor', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600, color: ac.cream)),
               ],
             ),
             actions: [
               if (_editingFile != null) ...[
                 if (_isModified)
                   IconButton(
-                    icon: const Icon(Icons.save_rounded),
+                    icon: Icon(Icons.save_rounded, color: ac.primary),
                     onPressed: _saveFile,
                     tooltip: 'Save',
                   ),
-                IconButton(
-                  icon: const Icon(Icons.close_rounded),
-                  onPressed: () => setState(() => _editingFile = null),
-                ),
+                IconButton(icon: Icon(Icons.close_rounded, color: ac.onSurfaceDim), onPressed: () => setState(() => _editingFile = null)),
               ],
-              IconButton(
-                icon: const Icon(Icons.folder_open_rounded),
-                onPressed: _pickFile,
-                tooltip: 'Open file',
+              Container(
+                margin: const EdgeInsets.only(right: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: ac.outline.withAlpha(80)),
+                  color: ac.surfaceVariant,
+                ),
+                child: IconButton(
+                  icon: Icon(Icons.folder_open_rounded, size: 20, color: ac.onSurfaceDim),
+                  onPressed: _pickFile,
+                  tooltip: 'Open file',
+                ),
               ),
             ],
           ),
           if (_editingFile == null)
-            SliverFillRemaining(child: _buildEmptyView(theme))
+            SliverFillRemaining(child: _buildEmptyView(theme, ac))
           else ...[
             SliverToBoxAdapter(
-              child: _buildFileHeader(theme),
+              child: _buildFileHeader(theme, ac),
             ),
             if (_isProcessing)
               SliverToBoxAdapter(
-                child: _buildProcessingView(theme),
+                child: _buildProcessingView(theme, ac),
               )
             else if (_editorMode == 'text')
-              SliverFillRemaining(child: _buildTextEditor(theme))
+              SliverFillRemaining(child: _buildTextEditor(theme, ac))
             else if (_editorMode == 'pdf')
-              SliverFillRemaining(child: _buildPdfEditor(theme))
+              SliverFillRemaining(child: _buildPdfEditor(theme, ac))
             else
-              SliverFillRemaining(child: _buildBinaryView(theme)),
+              SliverFillRemaining(child: _buildBinaryView(theme, ac)),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildEmptyView(ThemeData theme) {
+  Widget _buildEmptyView(ThemeData theme, AppColors ac) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -211,55 +227,64 @@ class _EditorScreenState extends State<EditorScreen> {
           Container(
             padding: const EdgeInsets.all(40),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              color: ac.primary.withAlpha(15),
               shape: BoxShape.circle,
+              border: Border.all(color: ac.primary.withAlpha(40)),
             ),
-            child: Icon(Icons.edit_note_rounded, size: 64, color: theme.colorScheme.primary.withValues(alpha: 0.4)),
+            child: Icon(Icons.edit_note_rounded, size: 64, color: ac.primary.withAlpha(100)),
           ).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
           const SizedBox(height: 24),
-          Text('Open a File to Edit', style: theme.textTheme.headlineSmall),
+          Text('Open a File to Edit', style: theme.textTheme.headlineSmall?.copyWith(color: ac.cream)),
           const SizedBox(height: 8),
-          Text('Supports text, code, and PDF editing', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
+          Text('Supports text, code, and PDF editing', style: TextStyle(color: ac.onSurfaceDim)),
           const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: _pickFile,
-            icon: const Icon(Icons.folder_open_rounded),
-            label: const Text('Browse Files'),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(color: ac.primary.withAlpha(40), blurRadius: 16, offset: const Offset(0, 6)),
+              ],
+            ),
+            child: FilledButton.icon(
+              onPressed: _pickFile,
+              icon: const Icon(Icons.folder_open_rounded),
+              label: const Text('Browse Files'),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFileHeader(ThemeData theme) {
+  Widget _buildFileHeader(ThemeData theme, AppColors ac) {
     final color = AppTheme.getFileColor(_editingFile!.extension);
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.dividerColor),
+        color: ac.card,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: ac.outline.withAlpha(60)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
+              color: color.withAlpha(25),
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(AppTheme.getFileIcon(_editingFile!.extension), color: color, size: 28),
+            child: Icon(AppTheme.getFileIcon(_editingFile!.extension), color: color, size: 26),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(_editingFile!.name, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                Text(_editingFile!.name, style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600, fontSize: 15),
                     maxLines: 1, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 4),
-                Text('${_editingFile!.formattedSize}  ·  .${_editingFile!.extension}', style: theme.textTheme.bodySmall),
+                Text('${_editingFile!.formattedSize}  ·  .${_editingFile!.extension}', style: TextStyle(color: ac.onSurfaceDim, fontSize: 12)),
               ],
             ),
           ),
@@ -267,21 +292,20 @@ class _EditorScreenState extends State<EditorScreen> {
             Switch(
               value: _isEditing,
               onChanged: (v) => setState(() => _isEditing = v),
-              activeThumbColor: theme.colorScheme.primary,
             ),
         ],
       ),
     );
   }
 
-  Widget _buildTextEditor(ThemeData theme) {
+  Widget _buildTextEditor(ThemeData theme, AppColors ac) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Container(
         decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.dividerColor),
+          color: ac.card,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: ac.outline.withAlpha(60)),
         ),
         child: _isEditing
             ? TextField(
@@ -289,7 +313,7 @@ class _EditorScreenState extends State<EditorScreen> {
                 maxLines: null,
                 expands: true,
                 textAlignVertical: TextAlignVertical.top,
-                style: const TextStyle(fontFamily: 'monospace', fontSize: 13, height: 1.6),
+                style: TextStyle(fontFamily: 'monospace', fontSize: 13, height: 1.6, color: ac.cream),
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.all(16),
@@ -302,20 +326,20 @@ class _EditorScreenState extends State<EditorScreen> {
                 padding: const EdgeInsets.all(16),
                 child: SelectableText(
                   _textContent,
-                  style: const TextStyle(fontFamily: 'monospace', fontSize: 13, height: 1.6),
+                  style: TextStyle(fontFamily: 'monospace', fontSize: 13, height: 1.6, color: ac.cream),
                 ),
               ),
       ),
     );
   }
 
-  Widget _buildPdfEditor(ThemeData theme) {
+  Widget _buildPdfEditor(ThemeData theme, AppColors ac) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('PDF Tools', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+          Text('PDF Tools', style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600, fontSize: 16)),
           const SizedBox(height: 16),
           ..._pdfTools.map((tool) {
             final isSelected = _selectedPdfTool == tool;
@@ -324,24 +348,46 @@ class _EditorScreenState extends State<EditorScreen> {
               'Visual Diff': Icons.compare_rounded,
               'Batch Auto-Form': Icons.auto_fix_high_rounded,
             };
-            return Card(
+            return Container(
               margin: const EdgeInsets.only(bottom: 12),
-              child: ListTile(
-                contentPadding: const EdgeInsets.all(16),
-                leading: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
+              decoration: BoxDecoration(
+                color: isSelected ? ac.primaryContainer.withAlpha(60) : ac.card,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: isSelected ? ac.primary.withAlpha(80) : ac.outline.withAlpha(60)),
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () => _runPdfTool(tool),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: ac.primaryContainer,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(icons[tool] ?? Icons.picture_as_pdf, color: ac.primary, size: 22),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(tool, style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600, fontSize: 14)),
+                              const SizedBox(height: 2),
+                              Text(_getToolDescription(tool), style: TextStyle(color: ac.onSurfaceDim, fontSize: 12)),
+                            ],
+                          ),
+                        ),
+                        Icon(isSelected ? Icons.check_circle : Icons.chevron_right_rounded, color: isSelected ? ac.primary : ac.onSurfaceDim),
+                      ],
+                    ),
                   ),
-                  child: Icon(icons[tool] ?? Icons.picture_as_pdf, color: theme.colorScheme.primary),
                 ),
-                title: Text(tool, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
-                subtitle: Text(_getToolDescription(tool), style: theme.textTheme.bodySmall),
-                trailing: isSelected
-                    ? const Icon(Icons.check_circle, color: Colors.green)
-                    : const Icon(Icons.chevron_right_rounded),
-                onTap: () => _runPdfTool(tool),
               ),
             );
           }),
@@ -350,29 +396,29 @@ class _EditorScreenState extends State<EditorScreen> {
     );
   }
 
-  Widget _buildBinaryView(ThemeData theme) {
+  Widget _buildBinaryView(ThemeData theme, AppColors ac) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.code_rounded, size: 80, color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
+          Icon(Icons.code_rounded, size: 80, color: ac.onSurfaceDim.withAlpha(80)),
           const SizedBox(height: 16),
-          Text('Binary File', style: theme.textTheme.titleMedium),
+          Text('Binary File', style: theme.textTheme.titleMedium?.copyWith(color: ac.cream)),
           const SizedBox(height: 8),
-          Text('Editing not supported for this file type', style: theme.textTheme.bodySmall),
+          Text('Editing not supported for this file type', style: TextStyle(color: ac.onSurfaceDim)),
         ],
       ),
     );
   }
 
-  Widget _buildProcessingView(ThemeData theme) {
+  Widget _buildProcessingView(ThemeData theme, AppColors ac) {
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Column(
         children: [
-          const CircularProgressIndicator(),
+          CircularProgressIndicator(color: ac.primary),
           const SizedBox(height: 16),
-          Text(_processingStatus, style: theme.textTheme.bodyMedium),
+          Text(_processingStatus, style: TextStyle(color: ac.cream)),
         ],
       ),
     );

@@ -681,9 +681,9 @@ void main() {
       expect(AppTheme.getFileColor('gz'), isNot(Colors.grey));
     });
 
-    test('getFileColor returns grey for unknown types', () {
-      expect(AppTheme.getFileColor('obj'), Colors.grey);
-      expect(AppTheme.getFileColor('xyz'), Colors.grey);
+    test('getFileColor returns fallback for unknown types', () {
+      expect(AppTheme.getFileColor('obj'), AppTheme.onSurfaceDim);
+      expect(AppTheme.getFileColor('xyz'), AppTheme.onSurfaceDim);
     });
 
     test('getFileColor is case insensitive', () {
@@ -711,7 +711,7 @@ void main() {
 /// Helper: write a float32 into a byte list at the given offset (little-endian)
 void _writeFloat32(List<int> buffer, int offset, double value) {
   final bytes = ByteData(4)..setFloat32(0, value, Endian.little);
-  for (int i = 0; i < 4; i++) buffer[offset + i] = bytes.getUint8(i);
+  for (int i = 0; i < 4; i++) { buffer[offset + i] = bytes.getUint8(i); }
 }
 
 /// Helper: create ZIP bytes using the archive package's ZipEncoder

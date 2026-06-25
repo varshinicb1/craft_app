@@ -33,9 +33,9 @@ class _CraftAppState extends State<CraftApp> {
         return MaterialApp(
           title: 'CRAFT',
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
+          theme: AppTheme.darkTheme,
           darkTheme: AppTheme.darkTheme,
-          themeMode: provider.themeMode,
+          themeMode: ThemeMode.dark,
           home: const AppShell(),
         );
       },

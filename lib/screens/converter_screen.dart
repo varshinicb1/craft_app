@@ -30,24 +30,35 @@ class _ConverterScreenState extends State<ConverterScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final ac = theme.extension<AppColors>()!;
 
     return Scaffold(
+      backgroundColor: ac.bg,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             expandedHeight: 60,
             pinned: true,
+            backgroundColor: ac.bg,
+            surfaceTintColor: Colors.transparent,
             leading: const SizedBox(),
             title: Row(
               children: [
-                Icon(Icons.swap_horiz_rounded, color: theme.colorScheme.primary),
-                const SizedBox(width: 8),
-                Text('Converter', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: ac.primaryContainer,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.swap_horiz_rounded, color: ac.primary, size: 18),
+                ),
+                const SizedBox(width: 10),
+                Text('Converter', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600, color: ac.cream)),
               ],
             ),
             actions: [
               if (_sourceFile != null)
-                IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => setState(() => _sourceFile = null)),
+                IconButton(icon: Icon(Icons.close_rounded, color: ac.onSurfaceDim), onPressed: () => setState(() => _sourceFile = null)),
             ],
           ),
           SliverToBoxAdapter(
@@ -56,19 +67,19 @@ class _ConverterScreenState extends State<ConverterScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSourceSelector(theme),
+                  _buildSourceSelector(theme, ac),
                   const SizedBox(height: 24),
                   if (_sourceFile != null) ...[
-                    _buildFormatSelector(theme),
+                    _buildFormatSelector(theme, ac),
                     const SizedBox(height: 24),
-                    _buildConvertButton(theme),
+                    _buildConvertButton(theme, ac),
                     if (_isConverting) ...[
                       const SizedBox(height: 24),
-                      _buildProgressIndicator(theme),
+                      _buildProgressIndicator(theme, ac),
                     ],
                     if (_statusMessage.isNotEmpty) ...[
                       const SizedBox(height: 16),
-                      _buildStatusMessage(theme),
+                      _buildStatusMessage(theme, ac),
                     ],
                   ],
                 ],
@@ -80,81 +91,87 @@ class _ConverterScreenState extends State<ConverterScreen> {
     );
   }
 
-  Widget _buildSourceSelector(ThemeData theme) {
+  Widget _buildSourceSelector(ThemeData theme, AppColors ac) {
     final color = _sourceFile != null
         ? AppTheme.getFileColor(_sourceFile!.extension)
-        : theme.colorScheme.primary;
+        : ac.primary;
 
-    return Card(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: _pickSourceFile,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: AnimatedSwitcher(
-                  duration: 300.ms,
-                  child: Icon(
-                    _sourceFile != null
-                        ? AppTheme.getFileIcon(_sourceFile!.extension)
-                        : Icons.note_add_rounded,
-                    key: ValueKey(_sourceFile?.path),
-                    color: color,
-                    size: 36,
+    return Container(
+      decoration: BoxDecoration(
+        color: ac.card,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: ac.outline.withAlpha(60)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: _pickSourceFile,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: color.withAlpha(25),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: AnimatedSwitcher(
+                    duration: 300.ms,
+                    child: Icon(
+                      _sourceFile != null
+                          ? AppTheme.getFileIcon(_sourceFile!.extension)
+                          : Icons.note_add_rounded,
+                      key: ValueKey(_sourceFile?.path),
+                      color: color,
+                      size: 32,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _sourceFile?.name ?? 'Select Source File',
-                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _sourceFile != null
-                          ? '${_sourceFile!.formattedSize}  ·  .${_sourceFile!.extension}'
-                          : 'Tap to browse files',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _sourceFile?.name ?? 'Select Source File',
+                        style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600, fontSize: 15),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        _sourceFile != null
+                            ? '${_sourceFile!.formattedSize}  ·  .${_sourceFile!.extension}'
+                            : 'Tap to browse files',
+                        style: TextStyle(color: ac.onSurfaceDim, fontSize: 12),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Icon(Icons.chevron_right_rounded, color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
-            ],
+                Icon(Icons.chevron_right_rounded, color: ac.onSurfaceDim.withAlpha(120)),
+              ],
+            ),
           ),
         ),
       ),
     ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.1);
   }
 
-  Widget _buildFormatSelector(ThemeData theme) {
+  Widget _buildFormatSelector(ThemeData theme, AppColors ac) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Convert to', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-        const SizedBox(height: 12),
+        Text('Convert to', style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600, fontSize: 16)),
+        const SizedBox(height: 16),
         ..._formatGroups.entries.map((group) {
           return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(group.key, style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
+                Text(group.key, style: TextStyle(color: ac.onSurfaceDim, fontSize: 12, letterSpacing: 0.5)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -165,8 +182,12 @@ class _ConverterScreenState extends State<ConverterScreen> {
                       label: Text('.$fmt'),
                       selected: isSelected,
                       onSelected: (_) => setState(() => _targetFormat = fmt),
-                      selectedColor: theme.colorScheme.primary.withValues(alpha: 0.15),
-                      avatar: isSelected ? Icon(Icons.check, size: 16, color: theme.colorScheme.primary) : null,
+                      selectedColor: ac.primaryContainer,
+                      backgroundColor: ac.surfaceVariant,
+                      side: BorderSide(color: isSelected ? ac.primary.withAlpha(80) : ac.outline.withAlpha(60)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      labelStyle: TextStyle(color: isSelected ? ac.primary : ac.onSurfaceDim, fontSize: 13),
+                      avatar: isSelected ? Icon(Icons.check, size: 14, color: ac.primary) : null,
                     );
                   }).toList(),
                 ),
@@ -178,56 +199,58 @@ class _ConverterScreenState extends State<ConverterScreen> {
     );
   }
 
-  Widget _buildConvertButton(ThemeData theme) {
-    return SizedBox(
+  Widget _buildConvertButton(ThemeData theme, AppColors ac) {
+    return Container(
       width: double.infinity,
-      height: 52,
+      height: 54,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(color: ac.primary.withAlpha(50), blurRadius: 16, offset: const Offset(0, 6)),
+        ],
+      ),
       child: FilledButton.icon(
         onPressed: _isConverting ? null : _startConversion,
         icon: _isConverting
-            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
             : const Icon(Icons.swap_horiz_rounded),
         label: Text(_isConverting ? 'Converting...' : 'Start Conversion'),
-        style: FilledButton.styleFrom(
-          backgroundColor: theme.colorScheme.primary,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
       ),
-    ).animate().shimmer(duration: 1500.ms);
+    );
   }
 
-  Widget _buildProgressIndicator(ThemeData theme) {
+  Widget _buildProgressIndicator(ThemeData theme, AppColors ac) {
     return Column(
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
           child: LinearProgressIndicator(
             value: _progress,
             minHeight: 8,
-            backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+            backgroundColor: ac.primary.withAlpha(20),
           ),
         ),
         const SizedBox(height: 8),
-        Text('${(_progress * 100).toStringAsFixed(0)}%', style: theme.textTheme.bodySmall),
+        Text('${(_progress * 100).toStringAsFixed(0)}%', style: TextStyle(color: ac.onSurfaceDim)),
       ],
     );
   }
 
-  Widget _buildStatusMessage(ThemeData theme) {
+  Widget _buildStatusMessage(ThemeData theme, AppColors ac) {
     final isError = _statusMessage.contains('Error') || _statusMessage.contains('Failed');
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: (isError ? Colors.red : Colors.green).withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: (isError ? Colors.red : Colors.green).withValues(alpha: 0.3)),
+        color: (isError ? const Color(0xFFCF6679) : const Color(0xFF81C784)).withAlpha(20),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: (isError ? const Color(0xFFCF6679) : const Color(0xFF81C784)).withAlpha(60)),
       ),
       child: Row(
         children: [
           Icon(isError ? Icons.error_outline_rounded : Icons.check_circle_outline_rounded,
-               color: isError ? Colors.red : Colors.green),
+               color: isError ? const Color(0xFFCF6679) : const Color(0xFF81C784)),
           const SizedBox(width: 12),
-          Expanded(child: Text(_statusMessage, style: theme.textTheme.bodyMedium)),
+          Expanded(child: Text(_statusMessage, style: TextStyle(color: ac.cream))),
         ],
       ),
     );

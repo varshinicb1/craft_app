@@ -20,18 +20,16 @@ void main() {
   // ─── THEME TESTS ────────────────────────────────────────────────
 
   test('App theme creates successfully', () {
-    final theme = AppTheme.lightTheme;
+    final theme = AppTheme.darkTheme;
     expect(theme.useMaterial3, true);
-    expect(theme.brightness, Brightness.light);
-    final darkTheme = AppTheme.darkTheme;
-    expect(darkTheme.brightness, Brightness.dark);
+    expect(theme.brightness, Brightness.dark);
   });
 
   test('AppTheme returns correct file colors', () {
     expect(AppTheme.getFileColor('pdf'), isNotNull);
     expect(AppTheme.getFileColor('jpg'), isNotNull);
     expect(AppTheme.getFileColor('mp4'), isNotNull);
-    expect(AppTheme.getFileColor('unknown_xyz'), Colors.grey);
+    expect(AppTheme.getFileColor('unknown_xyz'), AppTheme.onSurfaceDim);
   });
 
   test('AppTheme returns correct file icons', () {
@@ -89,7 +87,7 @@ void main() {
   // ─── OBJ PARSER TESTS ──────────────────────────────────────────
 
   test('OBJ parser parses vertices and faces', () {
-    final objData = '''
+    const objData = '''
 v 0.0 0.0 0.0
 v 1.0 0.0 0.0
 v 0.0 1.0 0.0
@@ -108,7 +106,7 @@ f 1 2 3
   });
 
   test('OBJ parser handles normals', () {
-    final objData = 'v 0 0 0\nv 1 0 0\nv 0 1 0\nvn 0 0 1\nf 1//1 2//1 3//1\n';
+    const objData = 'v 0 0 0\nv 1 0 0\nv 0 1 0\nvn 0 0 1\nf 1//1 2//1 3//1\n';
     final model = ObjModel.parse(objData);
     expect(model.vertices.length, 3);
     expect(model.normals.length, 1);
@@ -142,7 +140,7 @@ f 1 2 3
   test('IsolateService text read/write roundtrip', () async {
     final dir = Directory.systemTemp.createTempSync('craft_test_');
     final filePath = '${dir.path}${Platform.pathSeparator}test_roundtrip.txt';
-    final content = 'Hello CRAFT!';
+    const content = 'Hello CRAFT!';
     await IsolateService.instance.writeTextFile(filePath, content);
     final read = await IsolateService.instance.readTextFile(filePath);
     expect(read, content);
@@ -266,6 +264,7 @@ f 1 2 3
 
   testWidgets('BottomNav renders 5 tabs', (tester) async {
     await tester.pumpWidget(MaterialApp(
+      theme: AppTheme.darkTheme,
       home: Scaffold(
         bottomNavigationBar: CraftBottomNav(
           currentIndex: 0,

@@ -80,47 +80,66 @@ class _ViewerScreenState extends State<ViewerScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final ac = theme.extension<AppColors>()!;
     final provider = context.watch<AppProvider>();
     final file = _viewingFile ?? provider.selectedFile;
 
     return Scaffold(
+      backgroundColor: ac.bg,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             expandedHeight: 60,
             pinned: true,
+            backgroundColor: ac.bg,
+            surfaceTintColor: Colors.transparent,
             leading: const SizedBox(),
             title: Row(
               children: [
-                Icon(Icons.visibility_rounded, color: theme.colorScheme.primary),
-                const SizedBox(width: 8),
-                Text('Viewer', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: ac.primaryContainer,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.visibility_rounded, color: ac.primary, size: 18),
+                ),
+                const SizedBox(width: 10),
+                Text('Viewer', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600, color: ac.cream)),
               ],
             ),
             actions: [
               if (file != null && file.extension == 'md')
                 IconButton(
-                  icon: Icon(_showMarkdownRendered ? Icons.code_rounded : Icons.visibility_rounded),
+                  icon: Icon(_showMarkdownRendered ? Icons.code_rounded : Icons.visibility_rounded, color: ac.onSurfaceDim),
                   onPressed: () => setState(() => _showMarkdownRendered = !_showMarkdownRendered),
                   tooltip: _showMarkdownRendered ? 'Show source' : 'Show rendered',
                 ),
-              IconButton(
-                icon: const Icon(Icons.folder_open_rounded),
-                onPressed: _pickAndView,
-                tooltip: 'Open file',
+              Container(
+                margin: const EdgeInsets.only(right: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: ac.outline.withAlpha(80)),
+                  color: ac.surfaceVariant,
+                ),
+                child: IconButton(
+                  icon: Icon(Icons.folder_open_rounded, size: 20, color: ac.onSurfaceDim),
+                  onPressed: _pickAndView,
+                  tooltip: 'Open file',
+                ),
               ),
             ],
           ),
           if (file == null)
-            SliverFillRemaining(child: _buildEmptyView(theme))
+            SliverFillRemaining(child: _buildEmptyView(theme, ac))
           else ...[
             SliverToBoxAdapter(
-              child: _buildFileHeader(theme, file),
+              child: _buildFileHeader(theme, ac, file),
             ),
             SliverFillRemaining(
               child: _isLoadingContent
-                  ? const Center(child: CircularProgressIndicator())
-                  : _buildContentView(theme, file),
+                  ? Center(child: CircularProgressIndicator(color: ac.primary))
+                  : _buildContentView(theme, ac, file),
             ),
           ],
         ],
@@ -128,7 +147,7 @@ class _ViewerScreenState extends State<ViewerScreen> {
     );
   }
 
-  Widget _buildEmptyView(ThemeData theme) {
+  Widget _buildEmptyView(ThemeData theme, AppColors ac) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -136,59 +155,69 @@ class _ViewerScreenState extends State<ViewerScreen> {
           Container(
             padding: const EdgeInsets.all(40),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              color: ac.primary.withAlpha(15),
               shape: BoxShape.circle,
+              border: Border.all(color: ac.primary.withAlpha(40)),
             ),
-            child: Icon(Icons.visibility_rounded, size: 64, color: theme.colorScheme.primary.withValues(alpha: 0.4)),
+            child: Icon(Icons.visibility_rounded, size: 64, color: ac.primary.withAlpha(100)),
           ).animate().scale(delay: 100.ms, duration: 600.ms, curve: Curves.elasticOut),
           const SizedBox(height: 24),
-          Text('No File Selected', style: theme.textTheme.headlineSmall),
+          Text('No File Selected', style: theme.textTheme.headlineSmall?.copyWith(color: ac.cream)),
           const SizedBox(height: 8),
-          Text('Tap the folder icon to open a file', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
+          Text('Tap the folder icon to open a file', style: TextStyle(color: ac.onSurfaceDim)),
           const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: _pickAndView,
-            icon: const Icon(Icons.folder_open_rounded),
-            label: const Text('Browse Files'),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(color: ac.primary.withAlpha(40), blurRadius: 16, offset: const Offset(0, 6)),
+              ],
+            ),
+            child: FilledButton.icon(
+              onPressed: _pickAndView,
+              icon: const Icon(Icons.folder_open_rounded),
+              label: const Text('Browse Files'),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFileHeader(ThemeData theme, FileItem file) {
+  Widget _buildFileHeader(ThemeData theme, AppColors ac, FileItem file) {
     final color = AppTheme.getFileColor(file.extension);
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.dividerColor),
+        color: ac.card,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: ac.outline.withAlpha(60)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
+              color: color.withAlpha(25),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(AppTheme.getFileIcon(file.extension), color: color, size: 32),
+            child: Icon(AppTheme.getFileIcon(file.extension), color: color, size: 30),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(file.name, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(file.name, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: ac.cream), maxLines: 1, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Text('${file.formattedSize}  ·  ', style: theme.textTheme.bodySmall),
+                    Text(file.formattedSize, style: TextStyle(color: ac.onSurfaceDim, fontSize: 13)),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
+                      decoration: BoxDecoration(color: color.withAlpha(20), borderRadius: BorderRadius.circular(6)),
                       child: Text('.${file.extension}', style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w500)),
                     ),
                   ],
@@ -201,7 +230,7 @@ class _ViewerScreenState extends State<ViewerScreen> {
     );
   }
 
-  Widget _buildContentView(ThemeData theme, FileItem file) {
+  Widget _buildContentView(ThemeData theme, AppColors ac, FileItem file) {
     if (file.isImage) {
       return _buildImageView(file);
     } else if (file.isVideo) {
@@ -210,15 +239,15 @@ class _ViewerScreenState extends State<ViewerScreen> {
       return AudioPlayerWidget(filePath: file.path);
     } else if (file.isText && _textContent.isNotEmpty) {
       if (file.extension == 'md' && _showMarkdownRendered) {
-        return _buildMarkdownView(theme);
+        return _buildMarkdownView(theme, ac);
       }
-      return _buildTextView(theme);
+      return _buildTextView(theme, ac);
     } else if (file.isModel) {
       return ModelViewer3D(filePath: file.path);
     } else if (file.extension == 'pdf' && _pdfContent.isNotEmpty) {
-      return _buildTextView(theme, content: _pdfContent);
+      return _buildTextView(theme, ac, content: _pdfContent);
     } else {
-      return _buildUnsupportedView(theme, file);
+      return _buildUnsupportedView(theme, ac, file);
     }
   }
 
@@ -235,7 +264,7 @@ class _ViewerScreenState extends State<ViewerScreen> {
             errorBuilder: (_, __, ___) => Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.broken_image_rounded, size: 64, color: Colors.grey.shade400),
+                Icon(Icons.broken_image_rounded, size: 64, color: Colors.grey.shade600),
                 const SizedBox(height: 8),
                 const Text('Unable to load image'),
               ],
@@ -272,78 +301,91 @@ class _ViewerScreenState extends State<ViewerScreen> {
   }
 
   Widget _buildVideoControls() {
+    final ac = Theme.of(context).extension<AppColors>()!;
     return Container(
       padding: const EdgeInsets.all(16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          IconButton(
-            icon: Icon(_videoController!.value.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
-            iconSize: 48,
-            onPressed: () {
-              _videoController!.value.isPlaying
-                  ? _videoController!.pause()
-                  : _videoController!.play();
-              setState(() {});
-            },
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: ac.cardElevated,
+              border: Border.all(color: ac.outline.withAlpha(80)),
+            ),
+            child: IconButton(
+              icon: Icon(
+                _videoController!.value.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                color: ac.primary,
+              ),
+              iconSize: 36,
+              onPressed: () {
+                _videoController!.value.isPlaying
+                    ? _videoController!.pause()
+                    : _videoController!.play();
+                setState(() {});
+              },
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTextView(ThemeData theme, {String? content}) {
+  Widget _buildTextView(ThemeData theme, AppColors ac, {String? content}) {
     final text = content ?? _textContent;
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.dividerColor),
+          color: ac.card,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: ac.outline.withAlpha(60)),
         ),
         child: SingleChildScrollView(
           child: SelectableText(
             text,
-            style: const TextStyle(fontFamily: 'monospace', fontSize: 13, height: 1.5),
+            style: TextStyle(fontFamily: 'monospace', fontSize: 13, height: 1.5, color: ac.cream),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildMarkdownView(ThemeData theme) {
+  Widget _buildMarkdownView(ThemeData theme, AppColors ac) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.dividerColor),
+          color: ac.card,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: ac.outline.withAlpha(60)),
         ),
         child: Markdown(
           data: _textContent,
           selectable: true,
           styleSheet: MarkdownStyleSheet(
-            h1: theme.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.w700),
-            h2: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w600),
-            h3: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
-            p: theme.textTheme.bodyMedium,
+            h1: theme.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.w700, color: ac.cream),
+            h2: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w600, color: ac.cream),
+            h3: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600, color: ac.cream),
+            p: TextStyle(color: ac.cream),
             code: TextStyle(
               fontFamily: 'monospace',
               fontSize: 13,
-              color: theme.colorScheme.primary,
-              backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+              color: ac.primary,
+              backgroundColor: ac.primaryContainer.withAlpha(150),
             ),
             codeblockDecoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(8),
+              color: ac.surfaceVariant,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: ac.outline.withAlpha(60)),
             ),
             blockquoteDecoration: BoxDecoration(
-              border: Border(left: BorderSide(color: theme.colorScheme.primary, width: 4)),
-              color: theme.colorScheme.primary.withValues(alpha: 0.05),
+              border: Border(left: BorderSide(color: ac.primary, width: 4)),
+              color: ac.primary.withAlpha(10),
+              borderRadius: BorderRadius.circular(4),
             ),
           ),
         ),
@@ -351,16 +393,16 @@ class _ViewerScreenState extends State<ViewerScreen> {
     );
   }
 
-  Widget _buildUnsupportedView(ThemeData theme, FileItem file) {
+  Widget _buildUnsupportedView(ThemeData theme, AppColors ac, FileItem file) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.preview_rounded, size: 80, color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
+          Icon(Icons.preview_rounded, size: 80, color: ac.onSurfaceDim.withAlpha(80)),
           const SizedBox(height: 16),
-          Text('Preview not available', style: theme.textTheme.titleMedium),
+          Text('Preview not available', style: theme.textTheme.titleMedium?.copyWith(color: ac.cream)),
           const SizedBox(height: 8),
-          Text('.${file.extension} files cannot be previewed', style: theme.textTheme.bodySmall),
+          Text('.${file.extension} files cannot be previewed', style: TextStyle(color: ac.onSurfaceDim)),
         ],
       ),
     );

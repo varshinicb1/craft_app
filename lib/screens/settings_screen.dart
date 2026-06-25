@@ -6,7 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../providers/app_provider.dart';
 import '../database/app_database.dart';
-
+import '../theme/app_theme.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -27,8 +27,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final ac = theme.extension<AppColors>()!;
 
     return Scaffold(
+      backgroundColor: ac.bg,
       appBar: AppBar(
         title: const Text('Settings'),
         centerTitle: true,
@@ -38,10 +40,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           return ListView(
             padding: const EdgeInsets.symmetric(vertical: 8),
             children: [
-              _buildAppearanceSection(theme, provider),
-              _buildStorageSection(theme, provider),
-              _buildAboutSection(theme),
-              _buildActionsSection(theme, provider),
+              _buildAppearanceSection(theme, ac, provider),
+              _buildStorageSection(theme, ac, provider),
+              _buildAboutSection(theme, ac),
+              _buildActionsSection(theme, ac, provider),
               const SizedBox(height: 32),
             ],
           );
@@ -50,9 +52,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildAppearanceSection(ThemeData theme, AppProvider provider) {
+  Widget _buildAppearanceSection(ThemeData theme, AppColors ac, AppProvider provider) {
     return _buildSection(
-      theme: theme,
+      ac: ac,
       icon: Icons.palette_rounded,
       title: 'APPEARANCE',
       children: [
@@ -81,81 +83,70 @@ class _SettingsScreenState extends State<SettingsScreen> {
               provider.setThemeMode(selected.first);
             },
             showSelectedIcon: false,
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) return ac.primaryContainer;
+                return ac.surfaceVariant;
+              }),
+              foregroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) return ac.primary;
+                return ac.onSurfaceDim;
+              }),
+              side: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return BorderSide(color: ac.primary.withAlpha(80));
+                }
+                return BorderSide(color: ac.outline.withAlpha(60));
+              }),
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildStorageSection(ThemeData theme, AppProvider provider) {
+  Widget _buildStorageSection(ThemeData theme, AppColors ac, AppProvider provider) {
     return _buildSection(
-      theme: theme,
+      ac: ac,
       icon: Icons.storage_rounded,
       title: 'STORAGE',
       children: [
-        ListTile(
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              Icons.insert_drive_file_rounded,
-              color: theme.colorScheme.primary,
-              size: 20,
-            ),
-          ),
-          title: const Text('Total Files'),
+        _buildSettingTile(
+          ac: ac,
+          icon: Icons.insert_drive_file_rounded,
+          iconColor: ac.primary,
+          title: 'Total Files',
           trailing: Text(
             '${provider.fileCount}',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600),
           ),
         ),
-        ListTile(
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.secondary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              Icons.cloud_rounded,
-              color: theme.colorScheme.secondary,
-              size: 20,
-            ),
-          ),
-          title: const Text('Storage Used'),
+        _buildSettingTile(
+          ac: ac,
+          icon: Icons.cloud_rounded,
+          iconColor: ac.gold,
+          title: 'Storage Used',
           trailing: Text(
             _formatBytes(provider.totalSize),
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600),
           ),
         ),
         const Divider(height: 1),
-        ListTile(
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.error.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              Icons.delete_sweep_rounded,
-              color: theme.colorScheme.error,
-              size: 20,
-            ),
-          ),
-          title: const Text('Clear All Files'),
-          subtitle: const Text('Remove all files from the database'),
-          onTap: () => _confirmClearAll(provider),
+        _buildSettingTile(
+          ac: ac,
+          icon: Icons.delete_sweep_rounded,
+          iconColor: const Color(0xFFCF6679),
+          title: 'Clear All Files',
+          subtitle: 'Remove all files from the database',
+          onTap: () => _confirmClearAll(provider, ac),
         ),
       ],
     );
   }
 
-  Widget _buildAboutSection(ThemeData theme) {
+  Widget _buildAboutSection(ThemeData theme, AppColors ac) {
     return _buildSection(
-      theme: theme,
+      ac: ac,
       icon: Icons.info_outline_rounded,
       title: 'ABOUT',
       children: [
@@ -167,17 +158,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
+                    colors: [ac.primary, ac.gold],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(
-                  Icons.build_circle_rounded,
-                  color: Colors.white,
-                  size: 32,
-                ),
+                child: const Icon(Icons.build_circle_rounded, color: Color(0xFF1A0A00), size: 28),
               ),
               const SizedBox(width: 16),
               Column(
@@ -185,17 +172,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   Text(
                     'CRAFT',
-                    style: theme.textTheme.titleLarge?.copyWith(
+                    style: TextStyle(
                       fontWeight: FontWeight.w700,
                       letterSpacing: 2,
+                      color: ac.cream,
+                      fontSize: 18,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     'Complete Resource and File Toolkit',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
+                    style: TextStyle(color: ac.onSurfaceDim, fontSize: 12),
                   ),
                 ],
               ),
@@ -203,41 +190,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
         const Divider(height: 1),
-        ListTile(
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.tertiary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              Icons.code_rounded,
-              color: theme.colorScheme.tertiary,
-              size: 20,
-            ),
-          ),
-          title: const Text('Version'),
-          trailing: Text(
-            '1.0.0',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
+        _buildSettingTile(
+          ac: ac,
+          icon: Icons.code_rounded,
+          iconColor: ac.tertiary,
+          title: 'Version',
+          trailing: Text('1.0.0', style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600)),
         ),
-        ListTile(
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              Icons.description_rounded,
-              color: theme.colorScheme.primary,
-              size: 20,
-            ),
-          ),
-          title: const Text('Licenses'),
-          subtitle: const Text('Open source licenses'),
-          trailing: const Icon(Icons.chevron_right_rounded),
+        _buildSettingTile(
+          ac: ac,
+          icon: Icons.description_rounded,
+          iconColor: ac.primary,
+          title: 'Licenses',
+          subtitle: 'Open source licenses',
+          trailing: Icon(Icons.chevron_right_rounded, color: ac.onSurfaceDim),
           onTap: () {
             showLicensePage(
               context: context,
@@ -251,49 +217,65 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildActionsSection(ThemeData theme, AppProvider provider) {
+  Widget _buildActionsSection(ThemeData theme, AppColors ac, AppProvider provider) {
     return _buildSection(
-      theme: theme,
+      ac: ac,
       icon: Icons.settings_rounded,
       title: 'ACTIONS',
       children: [
-        ListTile(
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.green.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.file_upload_rounded, color: Colors.green, size: 20),
-          ),
-          title: const Text('Export Database'),
-          subtitle: const Text('Copy database to a chosen location'),
-          trailing: const Icon(Icons.chevron_right_rounded),
+        _buildSettingTile(
+          ac: ac,
+          icon: Icons.file_upload_rounded,
+          iconColor: const Color(0xFF81C784),
+          title: 'Export Database',
+          subtitle: 'Copy database to a chosen location',
+          trailing: Icon(Icons.chevron_right_rounded, color: ac.onSurfaceDim),
           onTap: () => _exportDatabase(),
         ),
         const Divider(height: 1),
-        ListTile(
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.file_download_rounded, color: Colors.orange, size: 20),
-          ),
-          title: const Text('Import Database'),
-          subtitle: const Text('Replace database from a file'),
-          trailing: const Icon(Icons.chevron_right_rounded),
-          onTap: () => _importDatabase(provider),
+        _buildSettingTile(
+          ac: ac,
+          icon: Icons.file_download_rounded,
+          iconColor: const Color(0xFFFFB74D),
+          title: 'Import Database',
+          subtitle: 'Replace database from a file',
+          trailing: Icon(Icons.chevron_right_rounded, color: ac.onSurfaceDim),
+          onTap: () => _importDatabase(provider, ac),
         ),
       ],
     );
   }
 
-  Future<void> _confirmClearAll(AppProvider provider) async {
+  Widget _buildSettingTile({
+    required AppColors ac,
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    String? subtitle,
+    Widget? trailing,
+    VoidCallback? onTap,
+  }) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: iconColor.withAlpha(25),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: iconColor, size: 20),
+      ),
+      title: Text(title, style: TextStyle(color: ac.cream, fontWeight: FontWeight.w500)),
+      subtitle: subtitle != null ? Text(subtitle, style: TextStyle(color: ac.onSurfaceDim)) : null,
+      trailing: trailing,
+      onTap: onTap,
+    );
+  }
+
+  Future<void> _confirmClearAll(AppProvider provider, AppColors ac) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: ac.cardElevated,
         title: const Text('Clear All Files'),
         content: const Text(
           'This will permanently remove all files from the database. This action cannot be undone.',
@@ -305,10 +287,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(ctx).colorScheme.error,
-              foregroundColor: Theme.of(ctx).colorScheme.onError,
-            ),
             child: const Text('Clear All'),
           ),
         ],
@@ -362,10 +340,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _importDatabase(AppProvider provider) async {
+  Future<void> _importDatabase(AppProvider provider, AppColors ac) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: ac.cardElevated,
         title: const Text('Import Database'),
         content: const Text(
           'This will replace the current database with the selected file. All current data will be lost. Continue?',
@@ -377,10 +356,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(ctx).colorScheme.error,
-              foregroundColor: Theme.of(ctx).colorScheme.onError,
-            ),
             child: const Text('Import'),
           ),
         ],
@@ -423,7 +398,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildSection({
-    required ThemeData theme,
+    required AppColors ac,
     required IconData icon,
     required String title,
     required List<Widget> children,
@@ -435,21 +410,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
           child: Row(
             children: [
-              Icon(icon, size: 18, color: theme.colorScheme.primary),
+              Icon(icon, size: 16, color: ac.primary),
               const SizedBox(width: 8),
               Text(
                 title,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: theme.colorScheme.primary,
+                style: TextStyle(
+                  color: ac.primary,
                   letterSpacing: 1.2,
                   fontWeight: FontWeight.w600,
+                  fontSize: 12,
                 ),
               ),
             ],
           ),
         ),
-        Card(
+        Container(
           margin: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: ac.card,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: ac.outline.withAlpha(60)),
+          ),
           child: Column(children: children),
         ),
       ],
@@ -464,4 +445,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
   }
+}
+
+extension on AppColors {
+  Color get tertiary => const Color(0xFF8B6F47);
 }

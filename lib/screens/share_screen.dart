@@ -26,24 +26,35 @@ class _ShareScreenState extends State<ShareScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final ac = theme.extension<AppColors>()!;
 
     return Scaffold(
+      backgroundColor: ac.bg,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             expandedHeight: 60,
             pinned: true,
+            backgroundColor: ac.bg,
+            surfaceTintColor: Colors.transparent,
             leading: const SizedBox(),
             title: Row(
               children: [
-                Icon(Icons.share_rounded, color: theme.colorScheme.primary),
-                const SizedBox(width: 8),
-                Text('Share', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: ac.primaryContainer,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.share_rounded, color: ac.primary, size: 18),
+                ),
+                const SizedBox(width: 10),
+                Text('Share', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600, color: ac.cream)),
               ],
             ),
             actions: [
               if (_shareFile != null)
-                IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => setState(() => _shareFile = null)),
+                IconButton(icon: Icon(Icons.close_rounded, color: ac.onSurfaceDim), onPressed: () => setState(() => _shareFile = null)),
             ],
           ),
           SliverToBoxAdapter(
@@ -52,18 +63,18 @@ class _ShareScreenState extends State<ShareScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildShareHeader(theme),
+                  _buildShareHeader(theme, ac),
                   const SizedBox(height: 24),
                   if (_shareFile != null) ...[
-                    _buildShareMethods(theme),
+                    _buildShareMethods(theme, ac),
                     const SizedBox(height: 24),
-                    _buildQRCodeSection(theme),
+                    _buildQRCodeSection(theme, ac),
                     const SizedBox(height: 24),
-                    _buildNearbySection(theme),
+                    _buildNearbySection(theme, ac),
                   ],
                   if (_transferStatus.isNotEmpty) ...[
                     const SizedBox(height: 16),
-                    _buildTransferStatus(theme),
+                    _buildTransferStatus(theme, ac),
                   ],
                 ],
               ),
@@ -74,101 +85,107 @@ class _ShareScreenState extends State<ShareScreen> {
     );
   }
 
-  Widget _buildShareHeader(ThemeData theme) {
+  Widget _buildShareHeader(ThemeData theme, AppColors ac) {
     final color = _shareFile != null
         ? AppTheme.getFileColor(_shareFile!.extension)
-        : theme.colorScheme.primary;
+        : ac.primary;
 
-    return Card(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: _pickFile,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(16),
+    return Container(
+      decoration: BoxDecoration(
+        color: ac.card,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: ac.outline.withAlpha(60)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: _pickFile,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: color.withAlpha(25),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    _shareFile != null ? Icons.check_circle_rounded : Icons.file_upload_rounded,
+                    color: color,
+                    size: 32,
+                  ),
                 ),
-                child: Icon(
-                  _shareFile != null ? Icons.check_circle_rounded : Icons.file_upload_rounded,
-                  color: color,
-                  size: 36,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _shareFile?.name ?? 'Select File to Share',
-                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _shareFile != null
-                          ? '${_shareFile!.formattedSize}  ·  .${_shareFile!.extension}'
-                          : 'Tap to choose a file',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _shareFile?.name ?? 'Select File to Share',
+                        style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600, fontSize: 15),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        _shareFile != null
+                            ? '${_shareFile!.formattedSize}  ·  .${_shareFile!.extension}'
+                            : 'Tap to choose a file',
+                        style: TextStyle(color: ac.onSurfaceDim, fontSize: 12),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Icon(Icons.chevron_right_rounded, color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
-            ],
+                Icon(Icons.chevron_right_rounded, color: ac.onSurfaceDim.withAlpha(120)),
+              ],
+            ),
           ),
         ),
       ),
     ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.1);
   }
 
-  Widget _buildShareMethods(ThemeData theme) {
+  Widget _buildShareMethods(ThemeData theme, AppColors ac) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Share Methods', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+        Text('Share Methods', style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600, fontSize: 16)),
         const SizedBox(height: 16),
         _buildShareMethodCard(
-          theme,
+          theme, ac,
           icon: Icons.ios_share_rounded,
           title: 'System Share',
           subtitle: 'Share via installed apps',
-          color: theme.colorScheme.primary,
+          color: ac.primary,
           onTap: _systemShare,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         _buildShareMethodCard(
-          theme,
+          theme, ac,
           icon: Icons.qr_code_2_rounded,
           title: 'QR Code',
           subtitle: 'Generate shareable QR code',
-          color: Colors.deepPurple,
+          color: const Color(0xFFCE93D8),
           onTap: _generateQR,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         _buildShareMethodCard(
-          theme,
+          theme, ac,
           icon: Icons.wifi_tethering_rounded,
           title: 'Nearby Share',
           subtitle: 'Transfer via local network',
-          color: Colors.teal,
+          color: ac.gold,
           onTap: _scanNearby,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         _buildShareMethodCard(
-          theme,
+          theme, ac,
           icon: Icons.copy_rounded,
           title: 'Copy to Clipboard',
           subtitle: 'Copy file path for sharing',
-          color: Colors.orange,
+          color: const Color(0xFFFFB74D),
           onTap: _copyToClipboard,
         ),
       ],
@@ -176,37 +193,62 @@ class _ShareScreenState extends State<ShareScreen> {
   }
 
   Widget _buildShareMethodCard(
-    ThemeData theme, {
+    ThemeData theme,
+    AppColors ac, {
     required IconData icon,
     required String title,
     required String subtitle,
     required Color color,
     required VoidCallback onTap,
   }) {
-    return Card(
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        leading: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(12),
+    return Container(
+      decoration: BoxDecoration(
+        color: ac.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: ac.outline.withAlpha(60)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: color.withAlpha(25),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(icon, color: color, size: 24),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600, fontSize: 14)),
+                      const SizedBox(height: 2),
+                      Text(subtitle, style: TextStyle(color: ac.onSurfaceDim, fontSize: 12)),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded, color: ac.onSurfaceDim.withAlpha(120)),
+              ],
+            ),
           ),
-          child: Icon(icon, color: color, size: 24),
         ),
-        title: Text(title, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
-        subtitle: Text(subtitle, style: theme.textTheme.bodySmall),
-        trailing: const Icon(Icons.chevron_right_rounded),
-        onTap: onTap,
       ),
     );
   }
 
-  Widget _buildQRCodeSection(ThemeData theme) {
+  Widget _buildQRCodeSection(ThemeData theme, AppColors ac) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('QR Code', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+        Text('QR Code', style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600, fontSize: 16)),
         const SizedBox(height: 16),
         if (_qrData.isNotEmpty)
           Center(
@@ -215,9 +257,6 @@ class _ShareScreenState extends State<ShareScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20),
-                ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -229,59 +268,75 @@ class _ShareScreenState extends State<ShareScreen> {
                     backgroundColor: Colors.white,
                     eyeStyle: const QrEyeStyle(
                       eyeShape: QrEyeShape.square,
-                      color: Color(0xFF6C63FF),
+                      color: Color(0xFFD4A574),
                     ),
                     dataModuleStyle: const QrDataModuleStyle(
                       dataModuleShape: QrDataModuleShape.square,
-                      color: Color(0xFF1A1A2E),
+                      color: Color(0xFF1E120D),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text('Scan to receive file', style: theme.textTheme.bodyMedium),
+                  Text('Scan to receive file', style: TextStyle(color: ac.cream)),
                 ],
               ),
             ),
           )
         else if (_isGeneratingQR)
-          const Center(child: CircularProgressIndicator())
+          Center(child: CircularProgressIndicator(color: ac.primary))
         else
           Center(
-            child: Text('Tap "QR Code" above to generate', style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-            )),
+            child: Text('Tap "QR Code" above to generate', style: TextStyle(color: ac.onSurfaceDim)),
           ),
       ],
     );
   }
 
-  Widget _buildNearbySection(ThemeData theme) {
+  Widget _buildNearbySection(ThemeData theme, AppColors ac) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Nearby Devices', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+        Text('Nearby Devices', style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600, fontSize: 16)),
         const SizedBox(height: 12),
         if (_isScanning)
-          const Center(
+          Center(
             child: Padding(
-              padding: EdgeInsets.all(20),
-              child: CircularProgressIndicator(),
+              padding: const EdgeInsets.all(20),
+              child: CircularProgressIndicator(color: ac.primary),
             ),
           )
         else if (_nearbyDevices.isEmpty)
           Center(
-            child: Text('No devices found nearby', style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-            )),
+            child: Text('No devices found nearby', style: TextStyle(color: ac.onSurfaceDim)),
           )
         else
-          ...(_nearbyDevices.map((device) => Card(
+          ...(_nearbyDevices.map((device) => Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            decoration: BoxDecoration(
+              color: ac.card,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: ac.outline.withAlpha(60)),
+            ),
             child: ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.devices_rounded)),
-              title: Text(device['name'] ?? 'Unknown'),
-              subtitle: Text('${device['ip'] ?? '?'}:${device['port'] ?? '?'}'),
-              trailing: FilledButton.tonal(
-                onPressed: () => _sendToDevice(device),
-                child: const Text('Send'),
+              contentPadding: const EdgeInsets.all(12),
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: ac.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.devices_rounded, color: ac.primary),
+              ),
+              title: Text(device['name'] ?? 'Unknown', style: TextStyle(color: ac.cream)),
+              subtitle: Text('${device['ip'] ?? '?'}:${device['port'] ?? '?'}', style: TextStyle(color: ac.onSurfaceDim)),
+              trailing: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: ac.primary.withAlpha(80)),
+                ),
+                child: TextButton(
+                  onPressed: () => _sendToDevice(device),
+                  child: Text('Send', style: TextStyle(color: ac.primary)),
+                ),
               ),
             ),
           ))),
@@ -289,21 +344,21 @@ class _ShareScreenState extends State<ShareScreen> {
     );
   }
 
-  Widget _buildTransferStatus(ThemeData theme) {
+  Widget _buildTransferStatus(ThemeData theme, AppColors ac) {
     final isError = _transferStatus.contains('Error') || _transferStatus.contains('Failed');
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: (isError ? Colors.red : Colors.green).withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: (isError ? Colors.red : Colors.green).withValues(alpha: 0.3)),
+        color: (isError ? const Color(0xFFCF6679) : const Color(0xFF81C784)).withAlpha(20),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: (isError ? const Color(0xFFCF6679) : const Color(0xFF81C784)).withAlpha(60)),
       ),
       child: Row(
         children: [
           Icon(isError ? Icons.error_outline_rounded : Icons.check_circle_outline_rounded,
-               color: isError ? Colors.red : Colors.green),
+               color: isError ? const Color(0xFFCF6679) : const Color(0xFF81C784)),
           const SizedBox(width: 12),
-          Expanded(child: Text(_transferStatus, style: theme.textTheme.bodyMedium)),
+          Expanded(child: Text(_transferStatus, style: TextStyle(color: ac.cream))),
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'theme/app_theme.dart';
 import 'widgets/bottom_nav.dart';
 import 'screens/home_screen.dart';
 import 'screens/viewer_screen.dart';
@@ -27,19 +28,21 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
+    final ac = Theme.of(context).extension<AppColors>()!;
     return Scaffold(
+      backgroundColor: ac.bg,
       body: AnimatedSwitcher(
-        duration: 300.ms,
-        switchInCurve: Curves.easeInOut,
-        switchOutCurve: Curves.easeInOut,
+        duration: 350.ms,
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
         transitionBuilder: (child, animation) {
           return FadeTransition(
             opacity: animation,
             child: SlideTransition(
               position: Tween<Offset>(
-                begin: const Offset(0.1, 0),
+                begin: const Offset(0.08, 0),
                 end: Offset.zero,
-              ).animate(animation),
+              ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
               child: child,
             ),
           );

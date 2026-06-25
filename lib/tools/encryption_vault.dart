@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:encrypt/encrypt.dart' as enc;
-
+import '../theme/app_theme.dart';
 
 class EncryptionVault extends StatefulWidget {
   const EncryptionVault({super.key});
@@ -122,103 +122,121 @@ class _EncryptionVaultState extends State<EncryptionVault> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    const color = Colors.deepPurple;
+    final ac = theme.extension<AppColors>()!;
+    const color = Color(0xFFCE93D8);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Encryption Vault'),
-        actions: [if (_processing) const Padding(padding: EdgeInsets.all(16), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)))],
-      ),
+      appBar: AppBar(title: const Text('Encryption Vault'),
+        actions: [if (_processing) const Padding(padding: EdgeInsets.all(16), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)))]),
       body: ListView(padding: const EdgeInsets.all(20), children: [
-        _buildHeader(theme, color), const SizedBox(height: 24),
-        _buildFileSelector(theme, color), const SizedBox(height: 20),
-        _buildPasswordField(theme, color), const SizedBox(height: 24),
-        _buildActionButtons(theme, color),
-        if (_statusMessage != null) ...[const SizedBox(height: 16), _buildStatusBanner(theme, color)],
+        _buildHeader(theme, ac, color), const SizedBox(height: 24),
+        _buildFileSelector(theme, ac, color), const SizedBox(height: 20),
+        _buildPasswordField(theme, ac, color), const SizedBox(height: 24),
+        _buildActionButtons(theme, ac, color),
+        if (_statusMessage != null) ...[const SizedBox(height: 16), _buildStatusBanner(theme, ac, color)],
       ]),
     );
   }
 
-  Widget _buildHeader(ThemeData theme, Color color) {
+  Widget _buildHeader(ThemeData theme, AppColors ac, Color color) {
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(gradient: LinearGradient(colors: [color, color.withValues(alpha: 0.7)]), borderRadius: BorderRadius.circular(20)),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [color, color.withAlpha(100)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.circular(24),
+      ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Icon(Icons.lock_rounded, color: Colors.white, size: 36),
-        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: Colors.white.withAlpha(30), borderRadius: BorderRadius.circular(14)),
+          child: const Icon(Icons.lock_rounded, color: Colors.white, size: 28),
+        ),
+        const SizedBox(height: 16),
         Text('Encryption Vault', style: theme.textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
         const SizedBox(height: 4),
-        Text('AES-256-CBC encrypt/decrypt any file', style: TextStyle(color: Colors.white.withValues(alpha: 0.8))),
+        Text('AES-256-CBC encrypt/decrypt any file', style: TextStyle(color: Colors.white.withAlpha(200))),
       ]),
     );
   }
 
-  Widget _buildFileSelector(ThemeData theme, Color color) {
-    return Card(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16), onTap: _pickFile,
-        child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
-          Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
-            child: Icon(Icons.file_present_rounded, color: color, size: 28)),
-          const SizedBox(width: 16),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(_selectedFile?.path.split(Platform.pathSeparator).last ?? 'Select File', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
-            if (_selectedFile != null) Text('${_selectedFile!.lengthSync()} bytes', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
-            if (_selectedFile == null) Text('Tap to pick any file', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
+  Widget _buildFileSelector(ThemeData theme, AppColors ac, Color color) {
+    return Container(
+      decoration: BoxDecoration(color: ac.card, borderRadius: BorderRadius.circular(18), border: Border.all(color: ac.outline.withAlpha(60))),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(borderRadius: BorderRadius.circular(18), onTap: _pickFile,
+          child: Padding(padding: const EdgeInsets.all(16), child: Row(children: [
+            Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: color.withAlpha(25), borderRadius: BorderRadius.circular(14)),
+              child: Icon(Icons.file_present_rounded, color: color, size: 26)),
+            const SizedBox(width: 16),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(_selectedFile?.path.split(Platform.pathSeparator).last ?? 'Select File', style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
+              if (_selectedFile != null) Text('${_selectedFile!.lengthSync()} bytes', style: TextStyle(color: ac.onSurfaceDim, fontSize: 12)),
+              if (_selectedFile == null) Text('Tap to pick any file', style: TextStyle(color: ac.onSurfaceDim, fontSize: 12)),
+            ])),
+            Icon(Icons.chevron_right_rounded, color: ac.onSurfaceDim.withAlpha(120)),
           ])),
-          const Icon(Icons.chevron_right_rounded, color: Colors.grey),
-        ])),
+        ),
       ),
     );
   }
 
-  Widget _buildPasswordField(ThemeData theme, Color color) {
-    return Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(children: [Icon(Icons.key_rounded, color: color, size: 20), const SizedBox(width: 8), Text('Password', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600))]),
-      const SizedBox(height: 12),
-      TextField(
-        controller: _passwordCtrl,
-        obscureText: _obscurePassword,
-        decoration: InputDecoration(
-          hintText: 'Enter encryption password',
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          suffixIcon: IconButton(icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility), onPressed: () => setState(() => _obscurePassword = !_obscurePassword)),
+  Widget _buildPasswordField(ThemeData theme, AppColors ac, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: ac.card, borderRadius: BorderRadius.circular(18), border: Border.all(color: ac.outline.withAlpha(60))),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [Icon(Icons.key_rounded, color: color, size: 20), const SizedBox(width: 8), Text('Password', style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600))]),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _passwordCtrl,
+          obscureText: _obscurePassword,
+          style: TextStyle(color: ac.cream),
+          decoration: InputDecoration(
+            hintText: 'Enter encryption password',
+            suffixIcon: IconButton(icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: ac.onSurfaceDim), onPressed: () => setState(() => _obscurePassword = !_obscurePassword)),
+          ),
         ),
-      ),
-    ])));
+      ]),
+    );
   }
 
-  Widget _buildActionButtons(ThemeData theme, Color color) {
+  Widget _buildActionButtons(ThemeData theme, AppColors ac, Color color) {
     final canAct = _selectedFile != null && _passwordCtrl.text.isNotEmpty && !_processing;
     return Row(children: [
-      Expanded(child: FilledButton.icon(
-        onPressed: canAct ? _encryptFile : null,
-        icon: const Icon(Icons.lock_rounded),
-        label: const Text('Encrypt'),
-        style: FilledButton.styleFrom(minimumSize: const Size(0, 52), backgroundColor: color),
+      Expanded(child: Container(
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(18), boxShadow: [
+          if (canAct) BoxShadow(color: color.withAlpha(50), blurRadius: 16, offset: const Offset(0, 6)),
+        ]),
+        child: FilledButton.icon(
+          onPressed: canAct ? _encryptFile : null,
+          icon: const Icon(Icons.lock_rounded),
+          label: const Text('Encrypt'),
+          style: FilledButton.styleFrom(minimumSize: const Size(0, 52), backgroundColor: color),
+        ),
       )),
       const SizedBox(width: 16),
       Expanded(child: OutlinedButton.icon(
         onPressed: canAct ? _decryptFile : null,
         icon: const Icon(Icons.lock_open_rounded),
         label: const Text('Decrypt'),
-        style: OutlinedButton.styleFrom(minimumSize: const Size(0, 52), foregroundColor: color, side: BorderSide(color: color)),
+        style: OutlinedButton.styleFrom(minimumSize: const Size(0, 52), foregroundColor: color, side: BorderSide(color: color.withAlpha(canAct ? 200 : 60))),
       )),
     ]);
   }
 
-  Widget _buildStatusBanner(ThemeData theme, Color color) {
+  Widget _buildStatusBanner(ThemeData theme, AppColors ac, Color color) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _statusIsError ? theme.colorScheme.error.withValues(alpha: 0.1) : Colors.green.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _statusIsError ? theme.colorScheme.error.withValues(alpha: 0.3) : Colors.green.withValues(alpha: 0.3)),
+        color: (_statusIsError ? const Color(0xFFCF6679) : const Color(0xFF81C784)).withAlpha(25),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: (_statusIsError ? const Color(0xFFCF6679) : const Color(0xFF81C784)).withAlpha(80)),
       ),
       child: Row(children: [
-        Icon(_statusIsError ? Icons.error_outline_rounded : Icons.check_circle_outline_rounded, color: _statusIsError ? theme.colorScheme.error : Colors.green, size: 20),
+        Icon(_statusIsError ? Icons.error_outline_rounded : Icons.check_circle_outline_rounded,
+             color: _statusIsError ? const Color(0xFFCF6679) : const Color(0xFF81C784), size: 20),
         const SizedBox(width: 10),
-        Expanded(child: Text(_statusMessage!, style: theme.textTheme.bodySmall?.copyWith(color: _statusIsError ? theme.colorScheme.error : Colors.green.shade700))),
+        Expanded(child: Text(_statusMessage!, style: TextStyle(color: ac.cream))),
       ]),
     );
   }

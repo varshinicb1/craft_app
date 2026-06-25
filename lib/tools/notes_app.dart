@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:intl/intl.dart';
+import '../theme/app_theme.dart';
 
 class NotesApp extends StatefulWidget {
   const NotesApp({super.key});
@@ -92,7 +93,7 @@ class _NotesAppState extends State<NotesApp> {
       title: const Text('Delete Note'),
       content: Text('Delete "${_titleCtrl.text}"?'),
       actions: [TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-        ElevatedButton(onPressed: () => Navigator.pop(ctx, true), style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent), child: const Text('Delete'))],
+        ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete'))],
     ));
     if (confirm == true) {
       await _selectedNote!.file.delete();
@@ -106,31 +107,31 @@ class _NotesAppState extends State<NotesApp> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = Colors.amber.shade700;
+    final ac = theme.extension<AppColors>()!;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Notes'),
         actions: [
           if (_selectedNote != null)
-            IconButton(icon: const Icon(Icons.delete_rounded, color: Colors.redAccent), onPressed: _deleteCurrent),
+            IconButton(icon: const Icon(Icons.delete_rounded, color: Color(0xFFE57373)), onPressed: _deleteCurrent),
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator(color: ac.primary))
           : Row(
               children: [
                 if (_notes.isNotEmpty)
-                  SizedBox(width: 200, child: _buildSidebar(theme, color)),
-                const VerticalDivider(width: 1),
-                Expanded(child: _buildEditor(theme, color)),
+                  SizedBox(width: 200, child: _buildSidebar(theme, ac)),
+                Container(width: 1, color: ac.outline.withAlpha(80)),
+                Expanded(child: _buildEditor(theme, ac)),
               ],
             ),
     );
   }
 
-  Widget _buildSidebar(ThemeData theme, Color color) {
+  Widget _buildSidebar(ThemeData theme, AppColors ac) {
     return Container(
-      color: theme.colorScheme.surfaceContainerLow,
+      color: ac.surfaceVariant,
       child: ListView.builder(
         itemCount: _notes.length,
         itemBuilder: (_, i) {
@@ -139,16 +140,19 @@ class _NotesAppState extends State<NotesApp> {
           final name = p.basenameWithoutExtension(note.file.path);
           final date = DateFormat('MM/dd').format(note.file.lastModifiedSync());
           return Container(
-            color: isSelected ? theme.colorScheme.primary.withValues(alpha: 0.1) : null,
+            decoration: BoxDecoration(
+              color: isSelected ? ac.primaryContainer.withAlpha(100) : Colors.transparent,
+              border: isSelected ? Border(right: BorderSide(color: ac.primary, width: 2)) : null,
+            ),
             child: ListTile(
               dense: true,
               selected: isSelected,
-              title: Text(name, style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis),
-              subtitle: Text(date, style: theme.textTheme.bodySmall?.copyWith(fontSize: 10, color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
+              title: Text(name, style: TextStyle(color: ac.cream, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
+              subtitle: Text(date, style: TextStyle(color: ac.onSurfaceDim, fontSize: 10)),
               onTap: () => _loadNote(note),
               trailing: IconButton(
-                iconSize: 18,
-                icon: Icon(Icons.close_rounded, color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
+                iconSize: 16,
+                icon: Icon(Icons.close_rounded, color: ac.onSurfaceDim.withAlpha(100)),
                 onPressed: () => _deleteNote(note),
               ),
             ),
@@ -158,20 +162,18 @@ class _NotesAppState extends State<NotesApp> {
     );
   }
 
-  Widget _buildEditor(ThemeData theme, Color color) {
+  Widget _buildEditor(ThemeData theme, AppColors ac) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           TextField(
             controller: _titleCtrl,
+            style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600),
             decoration: InputDecoration(
               hintText: 'Note title...',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              prefixIcon: const Icon(Icons.title_rounded),
+              prefixIcon: Icon(Icons.title_rounded, color: ac.onSurfaceDim),
             ),
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
           Expanded(
@@ -180,23 +182,25 @@ class _NotesAppState extends State<NotesApp> {
               maxLines: null,
               expands: true,
               textAlignVertical: TextAlignVertical.top,
-              decoration: InputDecoration(
+              style: TextStyle(color: ac.cream),
+              decoration: const InputDecoration(
                 hintText: 'Write your notes here...',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                contentPadding: const EdgeInsets.all(16),
                 alignLabelWithHint: true,
               ),
             ),
           ),
           const SizedBox(height: 12),
-          SizedBox(
+          Container(
             width: double.infinity,
-            height: 48,
+            height: 52,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [BoxShadow(color: ac.primary.withAlpha(50), blurRadius: 16, offset: const Offset(0, 6))],
+            ),
             child: FilledButton.icon(
               onPressed: _saveNote,
               icon: const Icon(Icons.save_rounded),
               label: Text(_selectedNote != null ? 'Update Note' : 'Save Note'),
-              style: FilledButton.styleFrom(backgroundColor: color),
             ),
           ),
         ],

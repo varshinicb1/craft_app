@@ -40,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.initState();
     _fabController = AnimationController(
       vsync: this,
-      duration: 300.ms,
+      duration: 400.ms,
     );
     _fabScale = CurvedAnimation(parent: _fabController, curve: Curves.elasticOut);
     _fabController.forward();
@@ -88,9 +88,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (ctx) => const _ToolPickerSheet(),
     );
   }
@@ -98,6 +96,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final ac = theme.extension<AppColors>()!;
 
     return Scaffold(
       body: Consumer<AppProvider>(
@@ -106,61 +105,61 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             onRefresh: () => provider.refreshAll(),
             child: CustomScrollView(
               slivers: [
-                _buildAppBar(theme, provider),
+                _buildAppBar(theme, ac, provider),
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    child: _buildSearchBar(theme),
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+                    child: _buildSearchBar(theme, ac),
                   ),
                 ),
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: _buildStatsRow(theme, provider),
+                    child: _buildStatsRow(theme, ac, provider),
                   ),
                 ),
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    child: _buildCategoryChips(theme, provider),
+                    child: _buildCategoryChips(theme, ac, provider),
                   ),
                 ),
                 if (provider.isLoading)
                   SliverFillRemaining(
-                    child: _buildShimmerList(),
+                    child: _buildShimmerList(theme),
                   )
                 else ...[
                   if (provider.recentFiles.isNotEmpty) ...[
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-                        child: _buildSectionHeader(theme, 'Recent Files', Icons.history_rounded),
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                        child: _buildSectionHeader(theme, ac, 'Recent Files', Icons.history_rounded),
                       ),
                     ),
                     SliverToBoxAdapter(
                       child: SizedBox(
-                        height: 100,
+                        height: 108,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           itemCount: provider.recentFiles.length.clamp(0, 8),
                           separatorBuilder: (_, __) => const SizedBox(width: 12),
-                          itemBuilder: (ctx, i) => _buildRecentFileCard(theme, provider.recentFiles[i]),
+                          itemBuilder: (ctx, i) => _buildRecentFileCard(theme, ac, provider.recentFiles[i]),
                         ),
                       ),
                     ),
                   ],
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                      child: _buildSectionHeader(theme, 'All Files', Icons.folder_rounded),
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                      child: _buildSectionHeader(theme, ac, 'All Files', Icons.folder_rounded),
                     ),
                   ),
                   if (provider.isSelectionMode)
-                    SliverToBoxAdapter(child: _buildBatchActionBar(theme, provider)),
+                    SliverToBoxAdapter(child: _buildBatchActionBar(theme, ac, provider)),
                   if (provider.files.isEmpty)
                     SliverFillRemaining(
-                      child: _buildEmptyState(theme),
+                      child: _buildEmptyState(theme, ac),
                     )
                   else
                     SliverList(
@@ -181,18 +180,36 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            FloatingActionButton.small(
-              heroTag: 'tools',
-              onPressed: _showToolPicker,
-              backgroundColor: theme.colorScheme.secondary,
-              child: const Icon(Icons.auto_fix_high_rounded),
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(color: ac.primary.withAlpha(60), blurRadius: 20, offset: const Offset(0, 8)),
+                ],
+              ),
+              child: FloatingActionButton.small(
+                heroTag: 'tools',
+                onPressed: _showToolPicker,
+                backgroundColor: ac.cardElevated,
+                foregroundColor: ac.primary,
+                child: const Icon(Icons.auto_fix_high_rounded),
+              ),
             ),
             const SizedBox(width: 12),
-            FloatingActionButton(
-              heroTag: 'pick',
-              onPressed: _pickFiles,
-              backgroundColor: theme.colorScheme.primary,
-              child: const Icon(Icons.add_rounded),
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(color: ac.primary.withAlpha(80), blurRadius: 24, offset: const Offset(0, 8)),
+                ],
+              ),
+              child: FloatingActionButton(
+                heroTag: 'pick',
+                onPressed: _pickFiles,
+                backgroundColor: ac.primary,
+                foregroundColor: const Color(0xFF1A0A00),
+                child: const Icon(Icons.add_rounded),
+              ),
             ),
           ],
         ),
@@ -200,52 +217,99 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildAppBar(ThemeData theme, AppProvider provider) {
+  Widget _buildAppBar(ThemeData theme, AppColors ac, AppProvider provider) {
     return SliverAppBar(
-      expandedHeight: 80,
+      expandedHeight: 88,
       floating: false,
       pinned: true,
+      backgroundColor: ac.bg,
+      surfaceTintColor: Colors.transparent,
       flexibleSpace: FlexibleSpaceBar(
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [theme.colorScheme.primary, theme.colorScheme.secondary],
+                  colors: [ac.primary, ac.gold],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(color: ac.primary.withAlpha(60), blurRadius: 12, offset: const Offset(0, 4)),
+                ],
               ),
-              child: const Icon(Icons.build_circle_rounded, color: Colors.white, size: 24),
+              child: const Icon(Icons.build_circle_rounded, color: Color(0xFF1A0A00), size: 22),
             ),
             const SizedBox(width: 12),
-            const Text(
-              'CRAFT',
-              style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 2),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'CRAFT',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 3,
+                    color: ac.cream,
+                    fontSize: 18,
+                  ),
+                ),
+                Text(
+                  'File Toolkit',
+                  style: TextStyle(fontSize: 10, color: ac.onSurfaceDim, letterSpacing: 1),
+                ),
+              ],
             ),
           ],
         ),
       ),
       actions: [
-        IconButton(
-          icon: Icon(
-            provider.themeMode == ThemeMode.dark
-                ? Icons.light_mode_rounded
-                : Icons.dark_mode_rounded,
+        Container(
+          margin: const EdgeInsets.only(right: 4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: ac.outline.withAlpha(80)),
+            color: ac.surfaceVariant,
           ),
-          onPressed: () {
-            final newMode = provider.themeMode == ThemeMode.dark
-                ? ThemeMode.light
-                : ThemeMode.dark;
-            provider.setThemeMode(newMode);
-          },
+          child: IconButton(
+            icon: Icon(
+              provider.themeMode == ThemeMode.dark
+                  ? Icons.light_mode_rounded
+                  : Icons.dark_mode_rounded,
+              size: 20,
+            ),
+            color: ac.onSurfaceDim,
+            onPressed: () {
+              final newMode = provider.themeMode == ThemeMode.dark
+                  ? ThemeMode.light
+                  : ThemeMode.dark;
+              provider.setThemeMode(newMode);
+            },
+          ),
         ),
-        IconButton(
-          icon: const Icon(Icons.settings_rounded),
-          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
-          tooltip: 'Settings',
+        Container(
+          margin: const EdgeInsets.only(right: 4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: ac.outline.withAlpha(80)),
+            color: ac.surfaceVariant,
+          ),
+          child: IconButton(
+            icon: Icon(Icons.settings_rounded, size: 20, color: ac.onSurfaceDim),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
+            tooltip: 'Settings',
+          ),
         ),
         PopupMenuButton<String>(
+          color: ac.cardElevated,
+          surfaceTintColor: Colors.transparent,
+          icon: Icon(Icons.more_vert_rounded, color: ac.onSurfaceDim),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: ac.outline.withAlpha(60)),
+          ),
           onSelected: (v) async {
             if (v == 'sort_name' || v == 'sort_date' || v == 'sort_size') {
               provider.setSortField(v == 'sort_name' ? 'name' : v == 'sort_date' ? 'date' : 'size');
@@ -279,22 +343,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildSearchBar(ThemeData theme) {
+  Widget _buildSearchBar(ThemeData theme, AppColors ac) {
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: ac.surfaceVariant,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.dividerColor),
+        border: Border.all(color: ac.outline.withAlpha(80)),
       ),
       child: TextField(
         onChanged: (v) => context.read<AppProvider>().setSearchQuery(v),
-        style: theme.textTheme.bodyLarge,
+        style: TextStyle(color: ac.cream),
         decoration: InputDecoration(
           hintText: 'Search files...',
-          prefixIcon: const Icon(Icons.search_rounded),
+          prefixIcon: Icon(Icons.search_rounded, color: ac.onSurfaceDim),
           suffixIcon: context.watch<AppProvider>().searchQuery.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.clear_rounded),
+                  icon: Icon(Icons.clear_rounded, color: ac.onSurfaceDim),
                   onPressed: () {
                     context.read<AppProvider>().setSearchQuery('');
                   },
@@ -307,38 +371,51 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildStatsRow(ThemeData theme, AppProvider provider) {
+  Widget _buildStatsRow(ThemeData theme, AppColors ac, AppProvider provider) {
     final stats = [
-      _StatData(Icons.insert_drive_file_rounded, '${provider.fileCount}', 'Files', theme.colorScheme.primary),
-      _StatData(Icons.storage_rounded, _formatBytes(provider.totalSize), 'Storage', theme.colorScheme.secondary),
-      _StatData(Icons.favorite_rounded, '${provider.favoriteFiles.length}', 'Favorites', Colors.redAccent),
+      _StatData(Icons.insert_drive_file_rounded, '${provider.fileCount}', 'Files', ac.primary),
+      _StatData(Icons.storage_rounded, _formatBytes(provider.totalSize), 'Storage', ac.gold),
+      _StatData(Icons.favorite_rounded, '${provider.favoriteFiles.length}', 'Favorites', const Color(0xFFE57373)),
     ];
 
     return Row(
       children: stats.map((s) => Expanded(
-        child: _buildStatCard(theme, s),
+        child: _buildStatCard(theme, ac, s),
       )).toList(),
     );
   }
 
-  Widget _buildStatCard(ThemeData theme, _StatData stat) {
-    return Card(
+  Widget _buildStatCard(ThemeData theme, AppColors ac, _StatData stat) {
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(
+        color: ac.card,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: ac.outline.withAlpha(60)),
+      ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
         child: Column(
           children: [
-            Icon(stat.icon, color: stat.color, size: 28),
-            const SizedBox(height: 8),
-            Text(stat.value, style: theme.textTheme.titleLarge?.copyWith(color: stat.color, fontWeight: FontWeight.w700)),
-            Text(stat.label, style: theme.textTheme.bodySmall),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: stat.color.withAlpha(25),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(stat.icon, color: stat.color, size: 22),
+            ),
+            const SizedBox(height: 10),
+            Text(stat.value, style: theme.textTheme.titleLarge?.copyWith(color: stat.color, fontWeight: FontWeight.w700, fontSize: 20)),
+            const SizedBox(height: 2),
+            Text(stat.label, style: theme.textTheme.bodySmall?.copyWith(color: ac.onSurfaceDim)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCategoryChips(ThemeData theme, AppProvider provider) {
+  Widget _buildCategoryChips(ThemeData theme, AppColors ac, AppProvider provider) {
     final categories = [
       ('all', Icons.all_inclusive_rounded, 'All'),
       ('image', Icons.image_rounded, 'Images'),
@@ -357,16 +434,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           final isSelected = provider.currentCategory == c.$1;
           return Padding(
             padding: const EdgeInsets.only(right: 8),
-            child: FilterChip(
-              label: Text(c.$3),
-              avatar: Icon(c.$2, size: 18),
+            child: ChoiceChip(
+              label: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(c.$2, size: 16, color: isSelected ? ac.primary : ac.onSurfaceDim),
+                  const SizedBox(width: 6),
+                  Text(c.$3),
+                ],
+              ),
               selected: isSelected,
               onSelected: (_) {
                 provider.setCategory(c.$1);
                 provider.loadFiles(category: c.$1 == 'all' ? null : c.$1);
               },
-              selectedColor: theme.colorScheme.primary.withValues(alpha: 0.15),
-              checkmarkColor: theme.colorScheme.primary,
+              selectedColor: ac.primaryContainer,
+              backgroundColor: ac.surfaceVariant,
+              side: BorderSide(color: isSelected ? ac.primary.withAlpha(80) : ac.outline.withAlpha(60)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              labelStyle: TextStyle(color: isSelected ? ac.primary : ac.onSurfaceDim, fontSize: 13),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             ),
           );
         }).toList(),
@@ -374,44 +461,44 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildSectionHeader(ThemeData theme, String title, IconData icon) {
+  Widget _buildSectionHeader(ThemeData theme, AppColors ac, String title, IconData icon) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: theme.colorScheme.primary),
+        Icon(icon, size: 18, color: ac.primary),
         const SizedBox(width: 8),
-        Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+        Text(title, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: ac.cream, letterSpacing: 0.5)),
       ],
     );
   }
 
-  Widget _buildRecentFileCard(ThemeData theme, FileItem file) {
+  Widget _buildRecentFileCard(ThemeData theme, AppColors ac, FileItem file) {
     final color = AppTheme.getFileColor(file.extension);
     return GestureDetector(
       onTap: () => context.read<AppProvider>().setSelectedFile(file),
       child: Container(
-        width: 80,
+        width: 84,
         decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.dividerColor),
+          color: ac.card,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: ac.outline.withAlpha(60)),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
+                color: color.withAlpha(25),
+                borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(AppTheme.getFileIcon(file.extension), color: color, size: 24),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Text(
                 file.name.length > 10 ? '${file.name.substring(0, 8)}...' : file.name,
-                style: theme.textTheme.bodySmall,
+                style: theme.textTheme.bodySmall?.copyWith(color: ac.cream),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
@@ -423,83 +510,106 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildBatchActionBar(ThemeData theme, AppProvider provider) {
+  Widget _buildBatchActionBar(ThemeData theme, AppColors ac, AppProvider provider) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(16),
+        color: ac.primaryContainer.withAlpha(180),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: ac.primary.withAlpha(60)),
       ),
       child: Row(
         children: [
-          Text('${provider.selectedIds.length} selected', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+          Icon(Icons.checklist_rounded, size: 18, color: ac.primary),
+          const SizedBox(width: 8),
+          Text('${provider.selectedIds.length} selected', style: TextStyle(color: ac.primary, fontWeight: FontWeight.w600, fontSize: 14)),
           const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.select_all_rounded),
-            onPressed: () => provider.selectAll(),
-            tooltip: 'Select All',
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_rounded, color: Colors.redAccent),
-            onPressed: () async {
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text('Delete Selected'),
-                  content: Text('Delete ${provider.selectedIds.length} file(s)?'),
-                  actions: [
-                    TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-                    ElevatedButton(onPressed: () => Navigator.pop(ctx, true), style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent), child: const Text('Delete')),
-                  ],
-                ),
-              );
-              if (confirm == true) await provider.deleteSelected();
-            },
-            tooltip: 'Delete Selected',
-          ),
-          IconButton(
-            icon: const Icon(Icons.close_rounded),
-            onPressed: () => provider.clearSelection(),
-            tooltip: 'Cancel',
-          ),
+          _buildBatchBtn(Icons.select_all_rounded, 'Select All', ac.primary, () => provider.selectAll()),
+          _buildBatchBtn(Icons.delete_rounded, 'Delete', const Color(0xFFE57373), () async {
+            final confirm = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('Delete Selected'),
+                content: Text('Delete ${provider.selectedIds.length} file(s)?'),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+                  ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete')),
+                ],
+              ),
+            );
+            if (confirm == true) await provider.deleteSelected();
+          }),
+          _buildBatchBtn(Icons.close_rounded, 'Cancel', ac.onSurfaceDim, () => provider.clearSelection()),
         ],
       ),
     );
   }
 
-  Widget _buildEmptyState(ThemeData theme) {
+  Widget _buildBatchBtn(IconData icon, String tooltip, Color color, VoidCallback onTap) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 2),
+      child: IconButton(
+        icon: Icon(icon, size: 20, color: color),
+        onPressed: onTap,
+        tooltip: tooltip,
+        splashRadius: 20,
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(ThemeData theme, AppColors ac) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(32),
+            padding: const EdgeInsets.all(36),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              color: ac.primary.withAlpha(15),
               shape: BoxShape.circle,
+              border: Border.all(color: ac.primary.withAlpha(40)),
             ),
-            child: Icon(Icons.cloud_upload_rounded, size: 64, color: theme.colorScheme.primary.withValues(alpha: 0.5)),
-          ),
+            child: Icon(Icons.cloud_upload_rounded, size: 56, color: ac.primary.withAlpha(100)),
+          ).animate().scale(delay: 100.ms, duration: 800.ms, curve: Curves.elasticOut),
           const SizedBox(height: 24),
-          Text('No Files Yet', style: theme.textTheme.headlineSmall),
+          Text('No Files Yet', style: theme.textTheme.headlineSmall?.copyWith(color: ac.cream)),
           const SizedBox(height: 8),
-          Text('Tap + to import your first file', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
+          Text('Tap + to import your first file', style: TextStyle(color: ac.onSurfaceDim)),
+          const SizedBox(height: 28),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(color: ac.primary.withAlpha(40), blurRadius: 16, offset: const Offset(0, 6)),
+              ],
+            ),
+            child: FilledButton.icon(
+              onPressed: _pickFiles,
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('Import Files'),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildShimmerList() {
+  Widget _buildShimmerList(ThemeData theme) {
     return Shimmer.fromColors(
-      baseColor: Colors.grey.withValues(alpha: 0.2),
-      highlightColor: Colors.grey.withValues(alpha: 0.1),
+      baseColor: AppTheme.background.withAlpha(120),
+      highlightColor: AppTheme.card.withAlpha(80),
       child: ListView.builder(
         itemCount: 8,
-        itemBuilder: (_, __) => ListTile(
-          leading: Container(width: 48, height: 48, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12))),
-          title: Container(height: 14, width: 150, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
-          subtitle: Container(height: 12, width: 80, margin: const EdgeInsets.only(top: 4), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4))),
+        itemBuilder: (_, __) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          child: Container(
+            height: 72,
+            decoration: BoxDecoration(
+              color: AppTheme.card,
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
         ),
       ),
     );
@@ -527,6 +637,7 @@ class _ToolPickerSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final ac = theme.extension<AppColors>()!;
     final tools = [
       _ToolData('Resume Builder', Icons.description_rounded, AppTheme.getFileColor('pdf'), const ResumeGenerator(), 'Create professional resumes'),
       _ToolData('Invoice Generator', Icons.receipt_long_rounded, AppTheme.getFileColor('xls'), const InvoiceGenerator(), 'Generate invoices'),
@@ -536,70 +647,125 @@ class _ToolPickerSheet extends StatelessWidget {
       _ToolData('Archive Creator', Icons.archive_rounded, AppTheme.getFileColor('zip'), const ArchiveCreator(), 'Create ZIP archives'),
       _ToolData('Image Compressor', Icons.compress_rounded, AppTheme.getFileColor('jpg'), const ImageCompressor(), 'Compress & resize images'),
       _ToolData('Image Editor', Icons.edit_rounded, AppTheme.getFileColor('jpg'), const ImageEditor(), 'Crop, rotate, flip & filters'),
-      _ToolData('Encryption Vault', Icons.lock_rounded, Colors.deepPurple, const EncryptionVault(), 'AES-256 encrypt/decrypt files'),
+      _ToolData('Encryption Vault', Icons.lock_rounded, const Color(0xFFCE93D8), const EncryptionVault(), 'AES-256 encrypt/decrypt files'),
       _ToolData('PDF Merger', Icons.merge_rounded, AppTheme.getFileColor('pdf'), const PdfMerger(), 'Combine multiple PDFs'),
-      _ToolData('Duplicate Finder', Icons.copy_all_rounded, Colors.orange, const DuplicateFinder(), 'Find & remove duplicate files'),
-      _ToolData('Notes', Icons.note_rounded, Colors.amber, const NotesApp(), 'Write & save text notes'),
-      _ToolData('Unit Converter', Icons.swap_horiz_rounded, Colors.teal, const UnitConverter(), 'Length, weight, temp, data & more'),
+      _ToolData('Duplicate Finder', Icons.copy_all_rounded, const Color(0xFFFFB74D), const DuplicateFinder(), 'Find & remove duplicate files'),
+      _ToolData('Notes', Icons.note_rounded, ac.gold, const NotesApp(), 'Write & save text notes'),
+      _ToolData('Unit Converter', Icons.swap_horiz_rounded, AppTheme.getFileColor('csv'), const UnitConverter(), 'Length, weight, temp, data & more'),
     ];
 
     return DraggableScrollableSheet(
-      initialChildSize: 0.6,
+      initialChildSize: 0.65,
       minChildSize: 0.3,
-      maxChildSize: 0.85,
+      maxChildSize: 0.9,
       expand: false,
       builder: (ctx, scrollController) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: theme.dividerColor,
-                    borderRadius: BorderRadius.circular(2),
+        return Container(
+          decoration: BoxDecoration(
+            color: ac.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 48,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: ac.outline.withAlpha(120),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Text('Professional Tools', style: theme.textTheme.headlineSmall),
-              const SizedBox(height: 4),
-              Text('All tools work fully offline', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
-              const SizedBox(height: 16),
-              Expanded(
-                child: ListView.separated(
-                  controller: scrollController,
-                  itemCount: tools.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (_, i) {
-                    final tool = tools[i];
-                    return Card(
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(16),
-                        leading: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: tool.color.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(tool.icon, color: tool.color, size: 28),
-                        ),
-                        title: Text(tool.name, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                        subtitle: Text(tool.description, style: theme.textTheme.bodySmall),
-                        trailing: const Icon(Icons.chevron_right_rounded),
-                        onTap: () {
-                          Navigator.pop(context);
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => tool.screen));
-                        },
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: ac.primaryContainer,
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                    );
-                  },
+                      child: Icon(Icons.auto_fix_high_rounded, size: 18, color: ac.primary),
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Professional Tools', style: theme.textTheme.titleLarge?.copyWith(color: ac.cream, fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 2),
+                        Text('All tools work fully offline', style: TextStyle(color: ac.onSurfaceDim, fontSize: 13)),
+                      ],
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 20),
+                Expanded(
+                  child: ListView.separated(
+                    controller: scrollController,
+                    itemCount: tools.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (_, i) {
+                      final tool = tools[i];
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: ac.card,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: ac.outline.withAlpha(40)),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            onTap: () {
+                              Navigator.pop(context);
+                              Navigator.push(context, MaterialPageRoute(builder: (_) => tool.screen));
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(14),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: tool.color.withAlpha(25),
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: Icon(tool.icon, color: tool.color, size: 26),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(tool.name, style: TextStyle(color: ac.cream, fontWeight: FontWeight.w600, fontSize: 15)),
+                                        const SizedBox(height: 2),
+                                        Text(tool.description, style: TextStyle(color: ac.onSurfaceDim, fontSize: 12)),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: ac.outline.withAlpha(40),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Icon(Icons.chevron_right_rounded, size: 18, color: ac.onSurfaceDim),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
