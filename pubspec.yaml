@@ -48,6 +48,13 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^3.0.1
   sqflite_common_ffi: ^2.4.2
+  msix: ^3.16.0
+
+msix_config:
+  display_name: CRAFT App
+  publisher_display_name: CRAFT
+  identity_name: craftapp.craft
+  publisher: CN=craftapp
 
 flutter:
   uses-material-design: true
