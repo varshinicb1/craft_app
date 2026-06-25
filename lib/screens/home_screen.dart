@@ -16,6 +16,12 @@ import '../tools/contract_generator.dart';
 import '../tools/archive_extractor.dart';
 import '../tools/archive_creator.dart';
 import '../tools/image_compressor.dart';
+import '../tools/encryption_vault.dart';
+import '../tools/pdf_merger.dart';
+import '../tools/duplicate_finder.dart';
+import '../tools/image_editor.dart';
+import '../tools/notes_app.dart';
+import '../tools/unit_converter.dart';
 import '../screens/settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -529,6 +535,12 @@ class _ToolPickerSheet extends StatelessWidget {
       _ToolData('Archive Extractor', Icons.folder_zip_rounded, AppTheme.getFileColor('zip'), const ArchiveExtractor(), 'Extract ZIP archives'),
       _ToolData('Archive Creator', Icons.archive_rounded, AppTheme.getFileColor('zip'), const ArchiveCreator(), 'Create ZIP archives'),
       _ToolData('Image Compressor', Icons.compress_rounded, AppTheme.getFileColor('jpg'), const ImageCompressor(), 'Compress & resize images'),
+      _ToolData('Image Editor', Icons.edit_rounded, AppTheme.getFileColor('jpg'), const ImageEditor(), 'Crop, rotate, flip & filters'),
+      _ToolData('Encryption Vault', Icons.lock_rounded, Colors.deepPurple, const EncryptionVault(), 'AES-256 encrypt/decrypt files'),
+      _ToolData('PDF Merger', Icons.merge_rounded, AppTheme.getFileColor('pdf'), const PdfMerger(), 'Combine multiple PDFs'),
+      _ToolData('Duplicate Finder', Icons.copy_all_rounded, Colors.orange, const DuplicateFinder(), 'Find & remove duplicate files'),
+      _ToolData('Notes', Icons.note_rounded, Colors.amber, const NotesApp(), 'Write & save text notes'),
+      _ToolData('Unit Converter', Icons.swap_horiz_rounded, Colors.teal, const UnitConverter(), 'Length, weight, temp, data & more'),
     ];
 
     return DraggableScrollableSheet(

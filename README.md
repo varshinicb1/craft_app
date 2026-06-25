@@ -32,6 +32,12 @@
 | 📦 **Archive Extractor** | Extract ZIP archives with file listing |
 | 📦 **Archive Creator** | Create ZIP archives from selected files |
 | 🖼️ **Image Compressor** | Reduce image file size with quality slider & resize controls |
+| 🖼️ **Image Editor** | Crop, rotate, flip, grayscale, sepia, invert & more |
+| 🔐 **Encryption Vault** | AES-256-CBC encrypt/decrypt any file with password |
+| 📄 **PDF Merger** | Combine multiple PDF files into one document |
+| 🔍 **Duplicate Finder** | Find & remove duplicate files by content hash |
+| 📝 **Notes** | Create, save & edit text notes with sidebar |
+| 📐 **Unit Converter** | Length, weight, temperature, data, speed, area, volume, time |
 | 📱 **QR Sharing** | Generate QR codes from files, share via any app |
 | ✍️ **Markdown Viewer** | Render `.md` files with formatted markdown (source/rendered toggle) |
 | 🎨 **Theme Support** | Light, dark, and system-follow themes |
@@ -138,10 +144,16 @@ lib/
 │   ├── archive_extractor.dart
 │   ├── archive_creator.dart
 │   ├── contract_generator.dart
+│   ├── duplicate_finder.dart
+│   ├── encryption_vault.dart
 │   ├── image_compressor.dart
+│   ├── image_editor.dart
 │   ├── invoice_generator.dart
+│   ├── notes_app.dart
+│   ├── pdf_merger.dart
 │   ├── prd_generator.dart
-│   └── resume_generator.dart
+│   ├── resume_generator.dart
+│   └── unit_converter.dart
 └── widgets/                  # Reusable widgets
     ├── audio_player_widget.dart
     ├── bottom_nav.dart
